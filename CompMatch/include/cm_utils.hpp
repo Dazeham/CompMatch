@@ -341,7 +341,7 @@ namespace cm {
         const std::vector<cv::Mat>& inMat;
         const cv::Point2f& inScaleFactor;
 
-        int values() const { return inMat.size(); }
+        int values() const { return inMat[0].cols; }
 
         int operator()(const Eigen::VectorXd& params, Eigen::VectorXd& fvec) const {
             for (int cNo = 0; cNo < values(); cNo++) {

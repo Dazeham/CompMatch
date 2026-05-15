@@ -2072,7 +2072,7 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 	*/
 
 	// ÐÂÊµÏÖ
-	Eigen::VectorXd optimized_params = distanceFit(vecDistMes, initial_params, inScaleFactor);
+	Eigen::VectorXd optimized_params = distanceFitFix(vecDistMes, initial_params, inScaleFactor);
 
 	cv::Point2f outPreOffset(optimized_params[0] - cmpCtr.x, optimized_params[1] - cmpCtr.y);
 	float outPreAngle = optimized_params[2] - inAngle;

@@ -387,6 +387,115 @@ namespace cm {
         int ret = lm.minimize(params);
         return params;
     }
+
+//////*****************    æ‡¿Î–ﬁ∏¥    ******************//////
+    inline double distanceFunctionFix(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
+        // parameter
+        const double deltaX = params[0];
+        const double deltaY = params[1];
+        const double deltaT = params[2];
+
+        // input
+        const double x = input[0];
+        const double y = input[1];
+        const double resX = input[2];
+        const double resY = input[3];
+        const double resGX = input[4];
+        const double resGY = input[5];
+
+        const double RT = CV_PI / 180.;
+        const double sint = std::sin(deltaT * RT);
+        const double cost = std::cos(deltaT * RT);
+        const double x_ = (cost * x - sint * y) * inScaleFactor.x + deltaX;
+        const double y_ = (sint * x + cost * y) * inScaleFactor.y + deltaY;
+        const double res = (x_ - resX) * resGX + (y_ - resY) * resGY;
+        return res;
+    }
+
+    inline Eigen::VectorXd distanceJacobianFix(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
+        // parameter
+        const double deltaX = params[0];
+        const double deltaY = params[1];
+        const double deltaT = params[2];
+
+        // input
+        const double x = input[0];
+        const double y = input[1];
+        const double resX = input[2];
+        const double resY = input[3];
+        const double resGX = input[4];
+        const double resGY = input[5];
+
+        const double RT = CV_PI / 180.;
+        const double sint = std::sin(deltaT * RT);
+        const double cost = std::cos(deltaT * RT);
+        const double x_ = (cost * x - sint * y) * inScaleFactor.x + deltaX;
+        const double y_ = (sint * x + cost * y) * inScaleFactor.y + deltaY;
+        const double item = (x_ - resX) * resGX + (y_ - resY) * resGY;
+        Eigen::Vector3d jac;
+        jac(0) = resGX;  // df/ddeltaX
+        jac(1) = resGY;  // df/ddeltaY
+        jac(2) = (
+            -inScaleFactor.x * resGX * RT * sint * x
+            - inScaleFactor.x * resGX * RT * cost * y
+            + inScaleFactor.y * resGY * RT * cost * x
+            - inScaleFactor.y * resGY * RT * sint * y
+            );  // df/ddeltaT
+
+        return jac;
+    }
+
+    struct distanceFunctorFix {
+        distanceFunctorFix(const std::vector<cv::Mat>& inMat, const cv::Point2f& inScaleFactor) : inMat(inMat), inScaleFactor(inScaleFactor) {}
+        const std::vector<cv::Mat>& inMat;
+        const cv::Point2f& inScaleFactor;
+
+        int values() const { return inMat[0].cols; }
+
+        int operator()(const Eigen::VectorXd& params, Eigen::VectorXd& fvec) const {
+            for (int cNo = 0; cNo < values(); cNo++) {
+                Eigen::VectorXd input(6);
+                input <<
+                    inMat[0].ptr<float>()[cNo],
+                    inMat[1].ptr<float>()[cNo],
+                    inMat[2].ptr<float>()[cNo],
+                    inMat[3].ptr<float>()[cNo],
+                    inMat[4].ptr<float>()[cNo],
+                    inMat[5].ptr<float>()[cNo];
+                double y_predicted = distanceFunctionFix(input, params, inScaleFactor);
+                fvec(cNo) = 0 - y_predicted;
+            }
+            return 0;
+        }
+
+        int df(const Eigen::VectorXd& params, Eigen::MatrixXd& fjac) const {
+            for (int cNo = 0; cNo < values(); cNo++) {
+                Eigen::VectorXd input(6);
+                input <<
+                    inMat[0].ptr<float>()[cNo],
+                    inMat[1].ptr<float>()[cNo],
+                    inMat[2].ptr<float>()[cNo],
+                    inMat[3].ptr<float>()[cNo],
+                    inMat[4].ptr<float>()[cNo],
+                    inMat[5].ptr<float>()[cNo];
+                fjac.row(cNo) = -distanceJacobianFix(input, params, inScaleFactor).transpose();
+            }
+            return 0;
+        }
+    };
+
+    inline Eigen::VectorXd distanceFitFix(const std::vector<cv::Mat>& inMat, const Eigen::VectorXd& initParams, const cv::Point2f& inScaleFactor) {
+        Eigen::VectorXd params = initParams;
+        distanceFunctorFix functor(inMat, inScaleFactor);
+        Eigen::LevenbergMarquardt<distanceFunctorFix> lm(functor);
+        //lm.parameters.maxfev = 100;
+        //lm.parameters.ftol = 1e-4;
+        //lm.parameters.xtol = 1e-4;
+        //lm.parameters.gtol = 1e-4;
+        //lm.parameters.factor = 100.;
+        int ret = lm.minimize(params);
+        return params;
+    }
 }
 
 #endif

@@ -49,6 +49,7 @@ namespace cm {
 		std::vector<float> mStepPixels;
 		std::vector<float> mStepAngles;
 		std::vector<int> mSobelSizes;
+		std::vector<float> mMargins;
 		float mAngleRange;  // 普通匹配角度范围
 
 		// 形状模板
@@ -60,7 +61,7 @@ namespace cm {
 		// 结果检查
 		cv::Mat mPartImg;
 		cv::Point mLeftTop;
-		std::vector<std::vector<cv::Mat>> mBallTemplates;
+		//std::vector<std::vector<cv::Mat>> mBallTemplates;
 		cv::Point2f mSrcImgCtr;
 		cv::Point2f mCropImgCtr;
 		cv::Point2d mSclFac;

@@ -71,6 +71,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 		mPyramidLevels = { 2, 1, 0 };
 		mStepPixels = { 1, 1, 1 };
 		mSobelSizes = { 3, 3, 3 };
+		mMargins = { 0, 1, 1 };
 	//}
 	//else {
 	//	mPyramidLevels = std::vector<int>{ 1, 1, 0 };
@@ -78,7 +79,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	//	mSobelSizes = { 3, 3, 3 };
 	//}
 	//mStepAngles = { 3, 0.5, 0.1 };
-	GetStepAngles(cv::Size2d(mTotalX, mTotalY), mPyramidLevels, mStepAngles);
+	GetStepAngles(cv::Size2d(mTotalX, mTotalY), mBeginAngle, mEndAngle, mPyramidLevels, mStepAngles);
 	mAngleRange = mStepAngles[0];
 	
 	// 绘制球珊元件正模板
@@ -111,8 +112,8 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 		GetBallSourceTemplate(mBallMultiScaleTemplates[i], tmpRadius, mSampleSteps[2], mPyramidLevels[2]);
 	}
 
-	// 绘制单个焊球模板用于球珊结果检查
-	GetSingleBallSourceTemplate(mBallTemplates, mAvgR, 1, 0);
+	//// 绘制单个焊球模板用于球珊结果检查
+	//GetSingleBallSourceTemplate(mBallTemplates, mAvgR, 1, 0);
 
 	return answer;
 }
@@ -132,7 +133,7 @@ AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 	cv::Point leftTop;
 	float maxMagVal;
 	cv::Mat crsMagImg;
-	answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mBallStepTemplates, mBallRotTemplatesCoarse, mBallRotTemplates, mBallMultiScaleTemplates, mPyramidLevels, mStepPixels, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, gbaSize, gbaSize, mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
+	answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mBallStepTemplates, mBallRotTemplatesCoarse, mBallRotTemplates, mBallMultiScaleTemplates, mPyramidLevels, mStepPixels, mMargins, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, gbaSize, gbaSize, mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
 	if (answer.first != ALGErrCode::IMG_SUCCESS) return answer;
 
 	// 箱形元件额外精度模块

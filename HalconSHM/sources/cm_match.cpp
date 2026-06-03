@@ -16,8 +16,9 @@ AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg,
     cv::Mat showImg = HObjectToMat(inSrcImg);
 #endif
     // "none" "least_squares" "interpolation"
-    FindShapeModel(inSrcImg, mModelID, DegToRad(-30), DegToRad(60),
-        0.5, 1, 0.5, "none", 0, 0.9, &row, &col, &ang, &score);
+    std::string method = "least_squares";
+    FindShapeModel(inSrcImg, mModelID, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
+        0.5, 1, 0.5, method.c_str(), 0, 0.9, &row, &col, &ang, &score);
 
     // 结果导出
     std::vector<double> hwidths = cm::tupleToVector<double>(width);
@@ -27,13 +28,24 @@ AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg,
     std::vector<double> hangles = cm::tupleToVector<double>(ang);
     std::vector<double> hscores = cm::tupleToVector<double>(score);
 
-    if (hwidths.size() == 0 || hheights.size() == 0 || hrows.size() == 0 || hcols.size() == 0 || hangles.size() == 0 || hscores.size() == 0) {
-        hwidths = { 0 };
-        hheights = { 0 };
-        hrows = { 0 };
-        hcols = { 0 };
-        hangles = { 0 };
-        hscores = { 0 };
+    if (hscores.size() == 0) {
+        FindShapeModel(inSrcImg, mModelID, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
+            0.2, 1, 0.5, method.c_str(), 0, 0.9, &row, &col, &ang, &score);
+        hwidths = cm::tupleToVector<double>(width);
+        hheights = cm::tupleToVector<double>(height);
+        hrows = cm::tupleToVector<double>(row);
+        hcols = cm::tupleToVector<double>(col);
+        hangles = cm::tupleToVector<double>(ang);
+        hscores = cm::tupleToVector<double>(score);
+
+        if (hscores.size() == 0) {
+            hwidths = { 0 };
+            hheights = { 0 };
+            hrows = { 0 };
+            hcols = { 0 };
+            hangles = { 0 };
+            hscores = { 0 };
+        }
     }
 
     cv::Point2f imgCtr((hwidths[0] - 1) * 0.5, (hheights[0] - 1) * 0.5);

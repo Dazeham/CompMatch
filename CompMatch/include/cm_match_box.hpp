@@ -53,6 +53,7 @@ namespace cm {
 		std::vector<float> mStepPixels;
 		std::vector<float> mStepAngles;
 		std::vector<int> mSobelSizes;
+		std::vector<float> mMargins;
 		float mAngleRange;                          // 普通匹配角度范围
 
 		// 额外匹配参数

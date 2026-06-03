@@ -25,6 +25,7 @@ namespace cm {
 
 		// 模板绘制
 		AnswerType GetLeadTemplate(const cv::Size2f inLeadSize, std::vector<cv::Mat>& outLeadTpl, const bool& inSingleSideFlag, const bool& inPreciseFlag, const float& inSplStep);
+		AnswerType GetLeadTemplateS(const cv::Size2f inLeadSize, std::vector<cv::Mat>& outLeadTpl, const bool& inSingleSideFlag, const bool& inPreciseFlag, const float& inSplStep);
 		AnswerType CTemplateShapeLead::GetLeadTemplateX(const cv::Size2f inLeadSize, std::vector<cv::Mat>& outLeadTpl, const bool& inSingleSideFlag, const bool& inPreciseFlag, const float& inSplStep);
 		AnswerType GetLeadTemplateFix(const cv::Size2f inLeadSize, std::vector<cv::Mat>& outLeadTpl);
 		AnswerType GetLeadGroupTemplate(const std::vector<cv::Mat>& inLeadTpl, std::vector<cv::Mat>& outLeadGroupTpl, const int& inLeadNum, const float& inLeadPitch, const std::vector<int>& inCutParam, const float& inAng, const cv::Point2f& inLeadCenter);
@@ -58,6 +59,7 @@ namespace cm {
 		std::vector<float> mStepPixels;
 		std::vector<float> mStepAngles;
 		std::vector<int> mSobelSizes;
+		std::vector<float> mMargins;
 		float mAngleRange;  // 普通匹配角度范围
 
 		// 形状模板
@@ -69,7 +71,7 @@ namespace cm {
 		// 结果检查
 		cv::Mat mPartImg;
 		cv::Point mLeftTop;
-		std::vector<std::vector<cv::Mat>> mPinTemplates;
+		//std::vector<std::vector<cv::Mat>> mPinTemplates;
 		cv::Point2f mSrcImgCtr;
 		cv::Point2f mCropImgCtr;
 		cv::Point2d mSclFac;

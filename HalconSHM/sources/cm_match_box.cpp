@@ -32,8 +32,8 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> pa
     // 创建Shape模型
 	CreateShapeModelXld(Rect,
 		mPyramidLevels,
-		DegToRad(-30),
-		DegToRad(60),
+        DegToRad(mBeginAngle), 
+        DegToRad(mEndAngle - mBeginAngle),
 		"auto", "auto", "ignore_local_polarity",
 		5, &mModelID);
 

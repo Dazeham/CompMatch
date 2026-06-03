@@ -72,16 +72,6 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 
 	/***   绘制模板   ***/
 	//// 计算模板尺寸
-	//float tmpMaxAbsX = 0, tmpMaxAbsY = 0;
-	//for (int i = 0; i < mVecCenterX.size(); ++i) {
-	//	if (ceil(abs(mVecCenterX[i])) > tmpMaxAbsX) {
-	//		tmpMaxAbsX = ceil(abs(mVecCenterX[i]));
-	//	}
-	//	if (ceil(abs(mVecCenterY[i])) > tmpMaxAbsY) {
-	//		tmpMaxAbsY = ceil(abs(mVecCenterY[i]));
-	//	}
-	//}
-	//mTplSize = cv::Size((tmpMaxAbsX + mBorWidth) * 2, (tmpMaxAbsY + mBorWidth) * 2);
 	const int maxSize = ceil(max(mTotalX, mTotalY));
 	mTplSize = cv::Size(maxSize + mBorWidth * 2, maxSize + mBorWidth * 2);
 	mTplCtr = cv::Point2f((mTplSize.width - 1) * 0.5, (mTplSize.height - 1) * 0.5);
@@ -95,8 +85,8 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	// 创建Shape模型
 	CreateShapeModelXld(leadSrcTpl,
 		mPyramidLevels,
-		DegToRad(-30),
-		DegToRad(60),
+		DegToRad(mBeginAngle),
+		DegToRad(mEndAngle - mBeginAngle),
 		"auto", "auto", "ignore_local_polarity",
 		5, &mModelID);
 

@@ -130,6 +130,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
         mPyramidLevels = { 2, 1, 0 };
         mStepPixels = { 1, 1, 1 };
         mSobelSizes = { 3, 3, 3 };
+        mMargins = { 0, 0, 0 };
         mSampleSteps = { baseSplStep * mSplItv, baseSplStep * mSplItv, baseSplStep * mSplItv };
         // 额外匹配参数
         mLineModOffser = 3;
@@ -143,7 +144,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
     //    mStepAngles[2] = 1;
     //}
     //mStepAngles = { 3, 0.5, 0.1 };
-    GetStepAngles(cv::Size2d(mTotalX, mTotalY), mPyramidLevels, mStepAngles);
+    GetStepAngles(cv::Size2d(mTotalX, mTotalY), mBeginAngle, mEndAngle, mPyramidLevels, mStepAngles);
     mAngleRange = mStepAngles[0];
 
     // 绘制正模板
@@ -206,7 +207,7 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     std::vector<cv::Mat> cropGradImgs;
     float maxMagVal;
     cv::Mat crsMagImg;
-    answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mRectStepTemplates, mRectRotTemplatesCoarse, mRectRotTemplates, mRectMultiScaleTemplates, mPyramidLevels, mStepPixels, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, cv::Size2f(mTotalX, mTotalY), cv::Size2f(mTotalX, mTotalY), mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
+    answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mRectStepTemplates, mRectRotTemplatesCoarse, mRectRotTemplates, mRectMultiScaleTemplates, mPyramidLevels, mStepPixels, mMargins, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, cv::Size2f(mTotalX, mTotalY), cv::Size2f(mTotalX, mTotalY), mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
     if (answer.first != ALGErrCode::IMG_SUCCESS) {
         return answer;
     }
@@ -225,7 +226,7 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     const cv::Point2f inScale(mScaleX, mScaleY);
     mScaleFactorInverse = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
     // 亚像素方法 开始
-    ///*
+    /*
     answer = GetPreciseRectPosition(cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle, mVecBoxSide, mLineModOffser, mLineModAngle, mLineUseRatio, mLineRowBegRatio, mLineMagTresh, mLineDistTresh);
     //answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mRectTemplatesRect, cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
     if (answer.first == ALGErrCode::IMG_SUCCESS) {
@@ -243,7 +244,7 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     else {
         answer = IMG_SUCCESS_ANS().SetErrCode();
     }
-    //*/
+    */
     // 亚像素方法 结束
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
@@ -921,7 +922,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
 
         outSrcTpl = { tX, tY, tGX, tGY };
     }
-    else if (false) {  // 纯矩形
+    else if (false) {  // Rectangular template
         const float perimeter = 2 * (rectSize.width + rectSize.height);
         const int ptNum = floorf(perimeter / inSplStep) + 1;
         //if (ptNum < 4)
@@ -1396,7 +1397,7 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         //tmpMaxY = smoothAsymmetricFunction(tmpMaxX, fitted_params);
         ////// 平滑非对称拟合结束
         
-        // 三次样条插值方案 开始
+        // 三次样条插值方案开始 IP
         CubicSpline csCurve;
         csCurve.build(vecPt);
         //for (float iX = vecPt[begIdx].x; iX < vecPt[endIdx].x; iX += splIns) {
@@ -1411,7 +1412,7 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         cv::Point2d tmpMaxPt = csCurve.findSplineMaxXY();
         tmpMaxX = tmpMaxPt.x;
         tmpMaxY = tmpMaxPt.y;
-        // 三次样条插值方案 结束
+        // 三次样条插值方案结束
 
         if (tmpMaxY >= inLineMagTresh) {
             tmpVecPt.push_back(cv::Point2f(colNo, inSrcImg.rows - 1 - tmpMaxX));

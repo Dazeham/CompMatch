@@ -16,8 +16,9 @@ int main() {
 	double scale_y = 0.0222;
 
 	// Obtain all image paths
-	const std::string dateRoot = "..\\..\\Data";
-	std::vector<std::string> vecTask = { dateRoot + "\\tra", dateRoot + "\\rot", dateRoot + "\\lig_rect", dateRoot + "\\lig_qbc" };
+	//const std::string dateRoot = "..\\..\\Data";
+	const std::string dateRoot = "C:\\Users\\Dazeham\\Desktop\\CompMatch\\Data";
+	std::vector<std::string> vecTask = { dateRoot + "\\tra", dateRoot + "\\rot", dateRoot + "\\lig_rect", dateRoot + "\\lig_qb" };
 	std::vector<std::string> vecFolderPath;
 	for (std::string taskPath : vecTask) {
 		std::vector<std::string> folderPaths = cm::glob(taskPath + "\\*");
@@ -90,6 +91,10 @@ int main() {
 			scores.push_back(answer.first == ALGErrCode::IMG_SUCCESS ? score : 0);
 			offsets.push_back(offset);
 			angles.push_back(angle);
+
+			if (score < 51) {
+				std::cout << imgPaths[i] << std::endl;
+			}
 
 			std::vector<std::string> items1 = cm::split(imgPaths[i], "\\");
 			std::string fileName = items1[items1.size() - 1];

@@ -62,8 +62,8 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	// 创建Shape模型
 	CreateShapeModelXld(ballSrcTpl,
 		mPyramidLevels,
-		DegToRad(-30),
-		DegToRad(60),
+		DegToRad(mBeginAngle),
+		DegToRad(mEndAngle - mBeginAngle),
 		"auto", "auto", "ignore_local_polarity",
 		5, &mModelID);
 

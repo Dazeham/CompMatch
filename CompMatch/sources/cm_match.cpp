@@ -22,7 +22,7 @@ int findClosestIndex(const std::vector<float>& inAngList, const float& inAngCor)
 	return closestIdx;
 }
 
-AnswerType CTemplatePartGroup::GetStepAngles(const cv::Size2d& inSize, const std::vector<int>& inPyramidLevels, std::vector<float>& outStepAngles) {
+AnswerType CTemplatePartGroup::GetStepAngles(const cv::Size2d& inSize, const float& inBegAng, const float& inEndAng, const std::vector<int>& inPyramidLevels, std::vector<float>& outStepAngles) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
 	/* 1 */
@@ -62,6 +62,24 @@ AnswerType CTemplatePartGroup::GetStepAngles(const cv::Size2d& inSize, const std
 		}
 	}
 	//*/
+
+	/* 4 */
+	/*
+	outStepAngles.clear();
+	outStepAngles = std::vector<float>(inPyramidLevels.size(), 0);
+	for (int i = 0; i < inPyramidLevels.size(); ++i) {
+		outStepAngles[i] = std::atan(1. / (std::max(inSize.width, inSize.height) * pow(0.5, inPyramidLevels[i]))) * 180. / CV_PI;
+		const double ratio = 0.5;
+		if (i == 0) {
+			float halfAng = (inEndAng - inBegAng) * 0.5;
+			float angStepNum = std::max(ceil(halfAng / outStepAngles[i]), float(1));
+			outStepAngles[i] = halfAng / angStepNum;
+		}
+		else {
+			outStepAngles[i] = outStepAngles[i - 1] / std::max(std::ceil(outStepAngles[i - 1] / outStepAngles[i]), float(1));
+		}
+	}
+	*/
 
 	return answer;
 }
@@ -1079,9 +1097,9 @@ bool CTemplatePartGroup::GetConvexHullX(const cv::Mat& inMagImg, const std::vect
 	if (vecTplMaxX.size() == 0 || vecTplMinX.size() == 0 || vecTplMaxY.size() == 0 || vecTplMinY.size() == 0) {
 		return false;
 	}
-	const double ratio = 0.94;
-	const double tplWidth = (*std::min_element(vecTplMaxX.begin(), vecTplMaxX.end()) - *std::max_element(vecTplMinX.begin(), vecTplMinX.end())) * ratio;
-	const double tplHeight = (*std::min_element(vecTplMaxY.begin(), vecTplMaxY.end()) - *std::max_element(vecTplMinY.begin(), vecTplMinY.end())) * ratio;
+	const double ratio = 1.00;  // adjustment coefficien ¦Ç
+	const double tplWidth = (*std::min_element(vecTplMaxX.begin(), vecTplMaxX.end()) - *std::max_element(vecTplMinX.begin(), vecTplMinX.end()) + 1) * ratio;
+	const double tplHeight = (*std::min_element(vecTplMaxY.begin(), vecTplMaxY.end()) - *std::max_element(vecTplMinY.begin(), vecTplMinY.end()) + 1) * ratio;
 
 	// Êä³öÆ¥ÅäÇøÓò
 	GetContinuousRegions(tmpImg, leftTop, tplWidth, tplHeight, outDetectRange);
@@ -1591,7 +1609,7 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 				tmpScore = vecMatRes[ptNo][posNo].scoreM * fM * 0.5 + vecMatRes[ptNo][posNo].scoreG * fG * 0.5;
 			}
 			else {
-				tmpScore = vecMatRes[ptNo][posNo].scoreG * fG * 0.4 + vecMatRes[ptNo][posNo].scoreM * fM * 0.4 + vecMatRes[ptNo][posNo].scoreV * fV * 0.2;
+				tmpScore = vecMatRes[ptNo][posNo].scoreG * fG * 0.4 + vecMatRes[ptNo][posNo].scoreM * fM * 0.4 + vecMatRes[ptNo][posNo].scoreV * fV * 0.2;  // Hybrid Similarity Measure
 				//tmpScore = vecMatRes[ptNo][posNo].scoreG * fG * 0.5 + vecMatRes[ptNo][posNo].scoreM * fM * 0.5;
 				//tmpScore = vecMatRes[ptNo][posNo].scoreG * fG;
 			}
@@ -1717,7 +1735,7 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesPrecise(const cv::Size2f& in
 	return answer;
 }
 
-AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::Mat& inPartImg, const std::vector<std::vector<cv::Mat>>& inStepTemplates, const std::vector<std::vector<cv::Mat>>& inRotTemplatesCoarse, const std::vector<std::vector<cv::Mat>>& inRotTemplates, const std::vector<std::vector<cv::Mat>>& inMultiScaleTemplates, const std::vector<int>& inPyramidLevels, const std::vector<float>& inStepPixels, const float& inBeginAngle, const float& inEndAngle, const float& inAngleRange, const std::vector<float>& inStepAngles, std::vector<int> inSobelSizes, const cv::Size2f& inTotalSize, const cv::Size2f& inMoldSize, const int& inStepNum, cv::Point2f& outOffset, float& outAngle, float& outScore, cv::Mat& outCrsMagImg, cv::Mat& outCropImg, std::vector<cv::Mat>& outCropGradImgs, cv::Mat& outCropMagImg, float& outMaxMagVal, cv::Point& outLeftTop, const cv::Point2d& inSclFac) {
+AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::Mat& inPartImg, const std::vector<std::vector<cv::Mat>>& inStepTemplates, const std::vector<std::vector<cv::Mat>>& inRotTemplatesCoarse, const std::vector<std::vector<cv::Mat>>& inRotTemplates, const std::vector<std::vector<cv::Mat>>& inMultiScaleTemplates, const std::vector<int>& inPyramidLevels, const std::vector<float>& inStepPixels, const std::vector<float> inMargins, const float& inBeginAngle, const float& inEndAngle, const float& inAngleRange, const std::vector<float>& inStepAngles, std::vector<int> inSobelSizes, const cv::Size2f& inTotalSize, const cv::Size2f& inMoldSize, const int& inStepNum, cv::Point2f& outOffset, float& outAngle, float& outScore, cv::Mat& outCrsMagImg, cv::Mat& outCropImg, std::vector<cv::Mat>& outCropGradImgs, cv::Mat& outCropMagImg, float& outMaxMagVal, cv::Point& outLeftTop, const cv::Point2d& inSclFac) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
 #if showTimeFlag
@@ -1781,7 +1799,8 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 	const int pyramidLevel1 = inPyramidLevels[step];
 	const int stepPixel1 = inStepPixels[step];
 	const float stepAngle1 = inStepAngles[step];
-	int margin1 = (stepPixel0 + 0) * pow(2, pyramidLevel0 - pyramidLevel1);
+	//int margin1 = (stepPixel0 + 0) * pow(2, pyramidLevel0 - pyramidLevel1);
+	int margin1 = std::max((int)ceil((stepPixel0 + inMargins[step]) * pow(2, pyramidLevel0 - pyramidLevel1)), 1);
 	cv::Point2f offset1;
 	float angle1;
 	answer = MatchRotatedTemplatesNormal(inTotalSize, pyrImgs[pyramidLevel1], inRotTemplates, inBeginAngle, offsets0, margin1, angles0, inAngleRange, stepPixel1, stepAngle1, offset1, angle1, pyramidLevel1);
@@ -1803,7 +1822,8 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 	const int pyramidLevel2 = inPyramidLevels[step];
 	const float stepPixel2 = inStepPixels[step];
 	const float stepAngle2 = inStepAngles[step];
-	int margin2 = (stepPixel1 + 0) * pow(2, pyramidLevel1 - pyramidLevel2);
+	//int margin2 = (stepPixel1 + 0) * pow(2, pyramidLevel1 - pyramidLevel2);
+	int margin2 = std::max((int)ceil((stepPixel1 + inMargins[step]) * pow(2, pyramidLevel1 - pyramidLevel2)), 1);
 	cv::Point2f offset2;
 	float angle2;
 	double score2;

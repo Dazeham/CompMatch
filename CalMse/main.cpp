@@ -16,7 +16,6 @@ int main() {
 	if (!std::filesystem::exists(csvRoot)) {
 		std::filesystem::create_directories(csvRoot);
 	}
-	const double fac = 1.960;  // 95%
 
 	/*  Rotation  */
 	// Extracted results
@@ -38,10 +37,7 @@ int main() {
 				std::vector<std::string> items = cm::split(line, " ");
 				tmpImgs.push_back(std::stod(items[items.size()-1]));
 				tmpTime.push_back(std::stod(items[2]));
-				tmpFlags.push_back(std::stod(items[1]) > 50 ? 1 : 0);
-				if (std::stod(items[1]) < 50) {
-					int j = 0;
-				}
+				tmpFlags.push_back(std::stod(items[1]) > 51 ? 1 : 0);
 			}
 			tmpAngs[aNo] = tmpImgs;
 			tmpTimes[aNo] = tmpTime;
@@ -67,64 +63,58 @@ int main() {
 		vecRotDiffMes[mNo] = tmpDiffAngs;
 	}
 	
-	// Calculate the error
-	std::vector<std::vector<std::vector<double>>> vecRotErrMes(vecMethod.size());
+	// Calculate the average
+	std::vector<std::vector<double>> vecRotMean(vecMethod.size());
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
-		std::vector<std::vector<double>> tmpDiffAngs(vecRotAng.size() - 1);
+		std::vector<double> tmpDiffAngs(vecRotAng.size() - 1);
 		for (int aNo = 0; aNo < vecRotAng.size() - 1; ++aNo) {
-			std::vector<double> tmpDiff(imgNums);
+			double tmpRotDiffSum = 0;
+			double tmpRotNum = 0;
 			for (int imgNo = 0; imgNo < imgNums; ++imgNo) {
-				tmpDiff[imgNo] = vecRotDiffMes[mNo][aNo][imgNo] - vecRotAng[aNo];
+				if (vecPassFlag[mNo][aNo][imgNo] > 0) {
+					tmpRotDiffSum += vecRotDiffMes[mNo][aNo][imgNo];
+					tmpRotNum += 1;
+				}
 			}
-			tmpDiffAngs[aNo] = tmpDiff;
+			tmpDiffAngs[aNo] = tmpRotDiffSum / tmpRotNum;
 		}
-		vecRotErrMes[mNo] = tmpDiffAngs;
+		vecRotMean[mNo] = tmpDiffAngs;
 	}
 	
 	// Calculate metrics
 	std::vector<std::vector<double>> vecRotMAE(vecMethod.size());
-	std::vector<std::vector<double>> vecRotMSE(vecMethod.size());
-	std::vector<std::vector<double>> vecRotMean(vecMethod.size());
 	std::vector<std::vector<double>> vecRotSD(vecMethod.size());
-	std::vector<std::vector<double>> vecRotItv(vecMethod.size());
+	std::vector<std::vector<double>> vecRotSU(vecMethod.size());
 	std::vector<std::vector<double>> vecPassRatio(vecMethod.size());
 	std::vector<std::vector<double>> vecRotAvgTime(vecMethod.size());
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<double> vecTmpMAE(vecRotAng.size() - 1);
-		std::vector<double> vecTmpMSE(vecRotAng.size() - 1);
-		std::vector<double> vecTmpMean(vecRotAng.size() - 1);
 		std::vector<double> vecTmpSD(vecRotAng.size() - 1);
-		std::vector<double> vecTmpItv(vecRotAng.size() - 1);
+		std::vector<double> vecTmpSU(vecRotAng.size() - 1);
 		std::vector<double> vecTmpNum(vecRotAng.size() - 1);
 		std::vector<double> vecTmpTime(vecRotAng.size() - 1);
 		for (int aNo = 0; aNo < vecRotAng.size() - 1; ++aNo) {
 			double tmpSumAbs = 0;
 			double tmpSumPow = 0;
-			double tmpSum = 0;
 			double tmpNum = 0;
 			double tmpTime = 0;
 			for (int imgNo = 0; imgNo < imgNums; ++imgNo) {
 				if (vecPassFlag[mNo][aNo][imgNo] > 0) {
-					tmpSumAbs += abs(vecRotErrMes[mNo][aNo][imgNo]);
-					tmpSumPow += pow(vecRotErrMes[mNo][aNo][imgNo], 2);
-					tmpSum += vecRotErrMes[mNo][aNo][imgNo];
+					tmpSumAbs += abs(vecRotDiffMes[mNo][aNo][imgNo] - vecRotMean[mNo][aNo]);
+					tmpSumPow += pow(vecRotDiffMes[mNo][aNo][imgNo] - vecRotMean[mNo][aNo], 2);
 					tmpNum += 1;
 					tmpTime += vecRotTime[mNo][aNo][imgNo];
 				}
 			}
 			vecTmpMAE[aNo] = tmpSumAbs / tmpNum;
-			vecTmpMSE[aNo] = tmpSumPow / tmpNum;
-			vecTmpMean[aNo] = tmpSum / tmpNum;
 			vecTmpSD[aNo] = std::sqrt(tmpSumPow / (tmpNum - 1));
-			vecTmpItv[aNo] = fac * vecTmpSD[aNo] / std::sqrt(tmpNum);
+			vecTmpSU[aNo] = vecTmpSD[aNo] / std::sqrt(tmpNum);
 			vecTmpNum[aNo] = double(tmpNum) / double(imgNums);
 			vecTmpTime[aNo] = tmpTime / tmpNum;
 		}
 		vecRotMAE[mNo] = vecTmpMAE;
-		vecRotMSE[mNo] = vecTmpMSE;
-		vecRotMean[mNo] = vecTmpMean;
 		vecRotSD[mNo] = vecTmpSD;
-		vecRotItv[mNo] = vecTmpItv;
+		vecRotSU[mNo] = vecTmpSU;
 		vecPassRatio[mNo] = vecTmpNum;
 		vecRotAvgTime[mNo] = vecTmpTime;
 	}
@@ -132,11 +122,13 @@ int main() {
 	for (int aNo = 0; aNo < vecRotAng.size() - 1; ++aNo) {
 		std::string resPathRot = csvRoot + "\\rot_" + std::to_string(vecRotAng[aNo]) + ".csv";
 		std::ofstream fileRot(resPathRot);
-		fileRot << "method,rotMAE,rotMSE,rotMean,rotStd,rotItv,passRatio,time\n";
+		fileRot << "method,rotMean,rotMAE,rotSD,rotSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
-		    fileRot << vecMethod[mNo] << "," << vecRotMAE[mNo][aNo] << "," << vecRotMSE[mNo][aNo] << ","
-			<< vecRotMean[mNo][aNo] << "," << vecRotSD[mNo][aNo] << "," << vecRotItv[mNo][aNo] << ","
-			<< vecPassRatio[mNo][aNo] << "," << vecRotAvgTime[mNo][aNo] << "\n";
+		    fileRot 
+				<< vecMethod[mNo] << "," 
+			    << vecRotMean[mNo][aNo] << "," << vecRotMAE[mNo][aNo] << "," 
+			    << vecRotSD[mNo][aNo] << "," << vecRotSU[mNo][aNo] << "," 
+			    << vecPassRatio[mNo][aNo] << "," << vecRotAvgTime[mNo][aNo] << "\n";
 		}
 		fileRot.close();
 	}
@@ -162,10 +154,7 @@ int main() {
 				std::vector<std::string> items = cm::split(line, " ");
 				tmpImgs.push_back(cv::Point2d(std::stod(items[3]), std::stod(items[4])));
 				tmpTimes.push_back(std::stod(items[2]));
-				tmpFlags.push_back(std::stod(items[1]) > 50 ? 1 : 0);
-				if (std::stod(items[1]) < 50) {
-					int j = 0;
-				}
+				tmpFlags.push_back(std::stod(items[1]) > 51 ? 1 : 0);
 			}
 			tmpTras[tNo] = tmpImgs;
 			tmpTrasTime[tNo] = tmpTimes;
@@ -190,64 +179,62 @@ int main() {
 		vecTraDiffMes[mNo] = tmpTras;
 	}
 
-	// Calculate the error
-	std::vector<std::vector<std::vector<cv::Point2d>>> vecTraErrMes(vecMethod.size());
+	// Calculate the average
+	std::vector<std::vector<cv::Point2d>> vecTraPtMean(vecMethod.size());
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
-		std::vector<std::vector<cv::Point2d>> tmpTras(vecTraOfs.size() - 1);
+		std::vector<cv::Point2d> tmpTras(vecTraOfs.size() - 1);
 		for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
-			std::vector<cv::Point2d> tmpImgs(imgNums);
+			cv::Point2d tmpTraSum = 0;
+			double tmpNum = 0;
 			for (int imgNo = 0; imgNo < imgNums; ++imgNo) {
-				tmpImgs[imgNo] = vecTraDiffMes[mNo][tNo][imgNo] - vecTraOfs[tNo];
+				if (vecTraPassFlag[mNo][tNo][imgNo] > 0) {
+					tmpTraSum += vecTraDiffMes[mNo][tNo][imgNo];
+					tmpNum += 1;
+				}
 			}
-			tmpTras[tNo] = tmpImgs;
+			tmpTras[tNo] = cv::Point2d(tmpTraSum.x / tmpNum, tmpTraSum.y / tmpNum);
 		}
-		vecTraErrMes[mNo] = tmpTras;
+		vecTraPtMean[mNo] = tmpTras;
 	}
 	
 	// Calculate metrics
-	std::vector<std::vector<double>> vecTraMAE(vecMethod.size());
-	std::vector<std::vector<double>> vecTraMSE(vecMethod.size());
 	std::vector<std::vector<double>> vecTraMean(vecMethod.size());
+	std::vector<std::vector<double>> vecTraMAE(vecMethod.size());
 	std::vector<std::vector<double>> vecTraSD(vecMethod.size());
-	std::vector<std::vector<double>> vecTraItv(vecMethod.size());
+	std::vector<std::vector<double>> vecTraSU(vecMethod.size());
 	std::vector<std::vector<double>> vecTraPassRatio(vecMethod.size());
 	std::vector<std::vector<double>> vecTraAvgTime(vecMethod.size());
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
-		std::vector<double> tmpMAEs(vecTraOfs.size() - 1);
-		std::vector<double> tmpMSEs(vecTraOfs.size() - 1);
 		std::vector<double> tmpMeans(vecTraOfs.size() - 1);
+		std::vector<double> tmpMAEs(vecTraOfs.size() - 1);
 		std::vector<double> tmpSDs(vecTraOfs.size() - 1);
-		std::vector<double> tmpItvs(vecTraOfs.size() - 1);
+		std::vector<double> tmpSUs(vecTraOfs.size() - 1);
 		std::vector<double> tmpPassNums(vecTraOfs.size() - 1);
 		std::vector<double> tmpTimes(vecTraOfs.size() - 1);
 		for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
 			double tmpSumAbs = 0;
 			double tmpSumPow = 0;
-			double tmpSum = 0;
 			double tmpNum = 0;
 			double tmpTime = 0;
 			for (int imgNo = 0; imgNo < imgNums; ++imgNo) {
 				if (vecTraPassFlag[mNo][tNo][imgNo] > 0) {
-					tmpSumAbs += abs(vecTraOfs[tNo].x) > 0.1 ? abs(vecTraErrMes[mNo][tNo][imgNo].x) : abs(vecTraErrMes[mNo][tNo][imgNo].y);
-					tmpSumPow += abs(vecTraOfs[tNo].x) > 0.1 ? pow(vecTraErrMes[mNo][tNo][imgNo].x, 2) : pow(vecTraErrMes[mNo][tNo][imgNo].y, 2);
-					tmpSum += abs(vecTraOfs[tNo].x) > 0.1 ? vecTraErrMes[mNo][tNo][imgNo].x : vecTraErrMes[mNo][tNo][imgNo].y;
+					tmpSumAbs += abs(vecTraOfs[tNo].x) > 0.1 ? abs(vecTraDiffMes[mNo][tNo][imgNo].x - vecTraPtMean[mNo][tNo].x) : abs(vecTraDiffMes[mNo][tNo][imgNo].y - vecTraPtMean[mNo][tNo].y);
+					tmpSumPow += abs(vecTraOfs[tNo].x) > 0.1 ? pow(vecTraDiffMes[mNo][tNo][imgNo].x - vecTraPtMean[mNo][tNo].x, 2) : pow(vecTraDiffMes[mNo][tNo][imgNo].y - vecTraPtMean[mNo][tNo].y, 2);
 					tmpNum += 1;
 					tmpTime += vecTraTime[mNo][tNo][imgNo];
 				}
 			}
+			tmpMeans[tNo] = abs(vecTraOfs[tNo].x) > 0.1 ? vecTraPtMean[mNo][tNo].x : vecTraPtMean[mNo][tNo].y;
 			tmpMAEs[tNo] = tmpSumAbs / tmpNum;
-			tmpMSEs[tNo] = tmpSumPow / tmpNum;
-			tmpMeans[tNo] = tmpSum / tmpNum;
 			tmpSDs[tNo] = std::sqrt(tmpSumPow / (tmpNum - 1));
-			tmpItvs[tNo] = fac * tmpSDs[tNo] / std::sqrt(tmpNum);
+			tmpSUs[tNo] = tmpSDs[tNo] / std::sqrt(tmpNum);
 			tmpPassNums[tNo] = double(tmpNum) / double(imgNums);
 			tmpTimes[tNo] = tmpTime / tmpNum;
 		}
-		vecTraMAE[mNo] = tmpMAEs;
-		vecTraMSE[mNo] = tmpMSEs;
 		vecTraMean[mNo] = tmpMeans;
+		vecTraMAE[mNo] = tmpMAEs;
 		vecTraSD[mNo] = tmpSDs;
-		vecTraItv[mNo] = tmpItvs;
+		vecTraSU[mNo] = tmpSUs;
 		vecTraPassRatio[mNo] = tmpPassNums;
 		vecTraAvgTime[mNo] = tmpTimes;
 	}
@@ -255,23 +242,24 @@ int main() {
 	for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
 		std::string resPathTra = csvRoot + "\\tra_" + vecTraFile[tNo] + ".csv";
 		std::ofstream fileTra(resPathTra);
-		fileTra << "method,traMAE,traMSE,traMean,traStd,traItv,passRatio,time\n";
+		fileTra << "method,traMean,traMAE,traSD,traSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo)
-			fileTra << vecMethod[mNo] << "," << vecTraMAE[mNo][tNo] << "," << vecTraMSE[mNo][tNo] << ","
-			<< vecTraMean[mNo][tNo] << "," << vecTraSD[mNo][tNo] << "," << vecTraItv[mNo][tNo] << ","
+			fileTra << vecMethod[mNo] << "," 
+			<< vecTraMean[mNo][tNo] << "," << vecTraMAE[mNo][tNo] << ","
+			<< vecTraSD[mNo][tNo] << "," << vecTraSU[mNo][tNo] << "," 
 			<< vecTraPassRatio[mNo][tNo] << "," << vecTraAvgTime[mNo][tNo] << "\n";
 		fileTra.close();
 	}
 	
 
 	/*  Light  */
-	const std::vector<std::string> vecTask = { "lig_rect", "lig_qbc" };
+	const std::vector<std::string> vecTask = { "lig_rect", "lig_qb", "lig_qbc"};
 	for (std::string taskName : vecTask) {
 		// Extracted results
 		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMesL(vecMethod.size());
 		std::vector<std::vector<std::vector<double>>> vecRotMesL(vecMethod.size());
 		std::vector<std::vector<std::vector<double>>> vecTimeMesL(vecMethod.size());
-		std::vector<std::vector<std::vector<int>>> vecPassFlafL(vecMethod.size());
+		std::vector<std::vector<std::vector<int>>> vecPassFlagL(vecMethod.size());
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			std::vector<std::string> tmpResFile = cm::glob(dataRoot + "\\" + vecMethod[mNo] + "\\" + taskName + "\\*.txt");
 			std::vector<std::vector<cv::Point2d>> tmpTraMes(tmpResFile.size());
@@ -290,10 +278,7 @@ int main() {
 					tmpTra.push_back(cv::Point2d(std::stod(items[3]), std::stod(items[4])));
 					tmpRot.push_back(std::stod(items[5]));
 					tmpTime.push_back(std::stod(items[2]));
-					tmpPass.push_back(std::stod(items[1]) > 1 ? 1 : 0);
-					if (std::stod(items[1]) < 50) {
-						int j = 0;
-					}
+					tmpPass.push_back(std::stod(items[1]) > 51 ? 1 : 0);
 				}
 				tmpTraMes[lNo] = tmpTra;
 				tmpRotMes[lNo] = tmpRot;
@@ -303,7 +288,7 @@ int main() {
 			vecTraMesL[mNo] = tmpTraMes;
 			vecRotMesL[mNo] = tmpRotMes;
 			vecTimeMesL[mNo] = tmpTimeMes;
-			vecPassFlafL[mNo] = tmpPassFlags;
+			vecPassFlagL[mNo] = tmpPassFlags;
 		}
 
 		// Calculate the average
@@ -315,14 +300,14 @@ int main() {
 			std::vector<cv::Point2d> tmpTraMean(vecTraMesL[mNo].size());
 			std::vector<double> tmpRotMean(vecRotMesL[mNo].size());
 			std::vector<double> tmpTimeMean(vecTimeMesL[mNo].size());
-			std::vector<int> tmpPassNum(vecPassFlafL[mNo].size());
+			std::vector<int> tmpPassNum(vecPassFlagL[mNo].size());
 			for (int lNo = 0; lNo < vecTraMesL[mNo].size(); ++lNo) {
 				cv::Point2d tmpTra(0, 0);
 				double tmpRot = 0.;
 				double tmpTime = 0.;
 				int tmpNum = 0;
 				for (int iNo = 0; iNo < vecTraMesL[mNo][lNo].size(); ++iNo) {
-					if (vecPassFlafL[mNo][lNo][iNo] > 0) {
+					if (vecPassFlagL[mNo][lNo][iNo] > 0) {
 						tmpTra += vecTraMesL[mNo][lNo][iNo];
 						tmpRot += vecRotMesL[mNo][lNo][iNo];
 						tmpTime += vecTimeMesL[mNo][lNo][iNo];
@@ -362,16 +347,12 @@ int main() {
 
 		// Calculate metrics
 		std::vector<double> vecTraMAEL(vecMethod.size());
-		std::vector<double> vecTraMSEL(vecMethod.size());
-		std::vector<double> vecTraMeannL(vecMethod.size());
 		std::vector<double> vecTraSDL(vecMethod.size());
-		std::vector<double> vecTraItvL(vecMethod.size());
+		std::vector<double> vecTraSUL(vecMethod.size());
 
 		std::vector<double> vecRotMAEL(vecMethod.size());
-		std::vector<double> vecRotMSEL(vecMethod.size());
-		std::vector<double> vecRotMeannL(vecMethod.size());
 		std::vector<double> vecRotSDL(vecMethod.size());
-		std::vector<double> vecRotItvL(vecMethod.size());
+		std::vector<double> vecRotSUL(vecMethod.size());
 
 		std::vector<double> vecAvgTimeL(vecMethod.size());
 		std::vector<double> vecPassRatioL(vecMethod.size());
@@ -379,26 +360,23 @@ int main() {
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			double traSumAbs = 0;
 			double traSumPow = 0;
-			double traSum = 0;
 			double rotSumAbs = 0;
 			double rotSumPow = 0;
-			double rotSum = 0;
 			double tmpTime = 0;
 			double tmpNum = 0;
 			double totalNum = 0;
 			for (int lNo = 0; lNo < vecTraMesL[mNo].size(); ++lNo) {
 				for (int iNo = 0; iNo < vecTraMesL[mNo][lNo].size(); ++iNo) {
-					if (vecPassFlafL[mNo][lNo][iNo] > 0) {
+					if (vecPassFlagL[mNo][lNo][iNo] > 0) {
 						tmpNum += 1;
-						const double tmpTraVal = abs(vecTraDiffL[mNo][lNo][iNo].x) > abs(vecTraDiffL[mNo][lNo][iNo].y) ? vecTraDiffL[mNo][lNo][iNo].x : vecTraDiffL[mNo][lNo][iNo].y;
+						//const double tmpTraVal = abs(vecTraDiffL[mNo][lNo][iNo].x) > abs(vecTraDiffL[mNo][lNo][iNo].y) ? vecTraDiffL[mNo][lNo][iNo].x : vecTraDiffL[mNo][lNo][iNo].y;
+						const double tmpTraVal = pow(vecTraDiffL[mNo][lNo][iNo].x, 2) + pow(vecTraDiffL[mNo][lNo][iNo].y, 2);
 
-						traSumAbs += abs(tmpTraVal);
-						traSumPow += pow(tmpTraVal, 2);
-						traSum += tmpTraVal;
+						traSumAbs += std::sqrt(tmpTraVal);
+						traSumPow += tmpTraVal;
 
 						rotSumAbs += abs(vecRotDiffL[mNo][lNo][iNo]);
 						rotSumPow += pow(vecRotDiffL[mNo][lNo][iNo], 2);
-						rotSum += vecRotDiffL[mNo][lNo][iNo];
 
 						tmpTime += vecTimeMesL[mNo][lNo][iNo];
 					}
@@ -406,27 +384,23 @@ int main() {
 				totalNum += vecTraDiffL[mNo][lNo].size();
 			}
 			vecTraMAEL[mNo] = traSumAbs / tmpNum;
-			vecTraMSEL[mNo] = traSumPow / tmpNum;
-			vecTraMeannL[mNo] = traSum / tmpNum;
 			vecTraSDL[mNo] = std::sqrt(traSumPow / (tmpNum - 1));
-			vecTraItvL[mNo] = fac * vecTraSDL[mNo] / std::sqrt(tmpNum);
+			vecTraSUL[mNo] = vecTraSDL[mNo] / std::sqrt(tmpNum);
 
 			vecRotMAEL[mNo] = rotSumAbs / tmpNum;
-			vecRotMSEL[mNo] = rotSumPow / tmpNum;
-			vecRotMeannL[mNo] = rotSum / tmpNum;
 			vecRotSDL[mNo] = std::sqrt(rotSumPow / (tmpNum - 1));
-			vecRotItvL[mNo] = fac * vecRotSDL[mNo] / std::sqrt(tmpNum);
+			vecRotSUL[mNo] = vecRotSDL[mNo] / std::sqrt(tmpNum);
 
 			vecAvgTimeL[mNo] = tmpTime / tmpNum;
 			vecPassRatioL[mNo] = tmpNum / totalNum;
 		}
 		std::string resPathLig = csvRoot + "\\" + taskName + ".csv";
 		std::ofstream fileLig(resPathLig);
-		fileLig << "method,traMAE,traMSE,traMean,traStd,traItv,rotMAE,rotMSE,rotMean,rotStd,rotItv,passRatio,time\n";
+		fileLig << "method,traMAE,traSD,traSU,rotMAE,rotSD,rotSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo)
 			fileLig << vecMethod[mNo] << ","
-			<< vecTraMAEL[mNo] << "," << vecTraMSEL[mNo] << "," << vecTraMeannL[mNo] << "," << vecTraSDL[mNo] << "," << vecTraItvL[mNo] << ","
-			<< vecRotMAEL[mNo] << "," << vecRotMSEL[mNo] << "," << vecRotMeannL[mNo] << "," << vecRotSDL[mNo] << "," << vecRotItvL[mNo] << ","
+			<< vecTraMAEL[mNo] << "," << vecTraSDL[mNo] << "," << vecTraSUL[mNo] << ","
+			<< vecRotMAEL[mNo] << "," << vecRotSDL[mNo] << "," << vecRotSUL[mNo] << ","
 			<< vecPassRatioL[mNo] << "," << vecAvgTimeL[mNo] << "\n";
 		fileLig.close();
 	}

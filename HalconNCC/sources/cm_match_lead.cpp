@@ -92,7 +92,7 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
     PaintRegion(leadSrcTpl, ImgBgFilled, &TemplateImg, 255, "fill");
 
     // Create the NCC model
-    CreateNccModel(TemplateImg, mPyramidLevels, DegToRad(-30), DegToRad(60),
+    CreateNccModel(TemplateImg, mPyramidLevels, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
         "auto", "use_polarity", &mModelID);
 
 #ifdef _DEBUG

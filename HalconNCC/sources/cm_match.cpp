@@ -14,8 +14,10 @@ AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg,
 #ifdef _DEBUG
     cv::Mat showImg = HObjectToMat(inSrcImg);
 #endif
-    FindNccModel(inSrcImg, mModelID, DegToRad(-30), DegToRad(60),
-        0.8, 1, 0.5, "false", 0, &row, &col, &ang, &score);
+    // false true
+    std::string method = "true";
+    FindNccModel(inSrcImg, mModelID, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
+        0.8, 1, 0.5, method.c_str(), 0, &row, &col, &ang, &score);
 
     std::vector<double> hwidths = cm::tupleToVector<double>(width);
     std::vector<double> hheights = cm::tupleToVector<double>(height);
@@ -24,13 +26,24 @@ AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg,
     std::vector<double> hangles = cm::tupleToVector<double>(ang);
     std::vector<double> hscores = cm::tupleToVector<double>(score);
 
-    if (hwidths.size() == 0 || hheights.size() == 0 || hrows.size() == 0 || hcols.size() == 0 || hangles.size() == 0 || hscores.size() == 0) {
-        hwidths = { 0 };
-        hheights = { 0 };
-        hrows = { 0 };
-        hcols = { 0 };
-        hangles = { 0 };
-        hscores = { 0 };
+    if (hscores.size() == 0) {
+        FindNccModel(inSrcImg, mModelID, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
+            0.3, 1, 0.5, method.c_str(), 0, &row, &col, &ang, &score);
+        hwidths = cm::tupleToVector<double>(width);
+        hheights = cm::tupleToVector<double>(height);
+        hrows = cm::tupleToVector<double>(row);
+        hcols = cm::tupleToVector<double>(col);
+        hangles = cm::tupleToVector<double>(ang);
+        hscores = cm::tupleToVector<double>(score);
+
+        if (hscores.size() == 0) {
+            hwidths = { 0 };
+            hheights = { 0 };
+            hrows = { 0 };
+            hcols = { 0 };
+            hangles = { 0 };
+            hscores = { 0 };
+        }
     }
 
     cv::Point2f imgCtr((hwidths[0] - 1) * 0.5, (hheights[0] - 1) * 0.5);

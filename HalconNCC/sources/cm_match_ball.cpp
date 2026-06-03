@@ -65,7 +65,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	HalconCpp::HObject TemplateImg;
 	PaintRegion(ballSrcTpl, ImgBgFilled, &TemplateImg, 255, "fill");
 
-	CreateNccModel(TemplateImg, mPyramidLevels, DegToRad(-30), DegToRad(60),
+	CreateNccModel(TemplateImg, mPyramidLevels, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
 		"auto", "use_polarity", &mModelID);
 
 #ifdef _DEBUG

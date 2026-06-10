@@ -11,6 +11,7 @@ namespace {
 
 namespace cm {
     
+    // Convert a HALCON tuple into a typed std::vector.
 template<typename T>
     inline std::vector<T> tupleToVector(const HalconCpp::HTuple& inTuple) {
         std::vector<T> result;
@@ -32,12 +33,14 @@ template<typename T>
         return result;
     }
 
+    // Convert strings into a HALCON tuple.
     inline HalconCpp::HTuple vectorToHTuple(const std::vector<std::string>& inVec) {
         HalconCpp::HTuple tuple;
         for (const auto& s : inVec)
             tuple.Append(s.c_str());
         return tuple;
     }
+    // Convert a HALCON image object to an OpenCV Mat.
     inline cv::Mat HObjectToMat(const HalconCpp::HObject& hObj) {
         cv::Mat cvImg;
         Hlong width, height;
@@ -71,6 +74,7 @@ template<typename T>
         return cvImg;
     }
 
+    // Convert an OpenCV Mat to a HALCON image object.
     inline HalconCpp::HObject MatToHObject(const cv::Mat& image) {
         HalconCpp::HObject hObj;
         int height = image.rows;
@@ -92,6 +96,7 @@ template<typename T>
         return hObj;
     }
 
+    // Render a HALCON region object into an OpenCV mask image.
     inline cv::Mat VisualizeHObject(HalconCpp::HObject inHObj, cv::Size inSize) {
         HalconCpp::HImage tmpImg;
         tmpImg.GenImageConst("byte", inSize.width, inSize.height);

@@ -9,6 +9,7 @@
 #include "cm_match_ball.hpp"
 
 
+// Run batch HALCON NCC matching and write per-image results.
 int main() {
 	// Init
 	double time_start;

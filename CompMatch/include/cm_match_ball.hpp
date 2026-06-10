@@ -6,25 +6,35 @@
 
 
 namespace cm {
+	// Matches ball-grid components by composing circular ball templates.
 	class CTemplateShapeBall : public CTemplatePartGroup {
 	public:
 		CTemplateShapeBall() = delete;
 		CTemplateShapeBall(float inScaleX, float inScaleY);
 		~CTemplateShapeBall() {};
+		// Build ball-grid templates from component and missing-ball metadata.
 		AnswerType GenerateTemplate(std::shared_ptr<Component> inCompPtr);
+		// Match a ball-grid component and return offset, angle, and score.
 		AnswerType TemplateMatch(const cv::Mat& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore);
+		// Save a ball-grid match overlay as an SVG result.
 		AnswerType SaveResult(const cv::Mat& inSrcImg, const cv::Point2f& inOffset, const float& inAngle, const float& inScore, const AnswerType& inAnswer, const double& inTime, const std::string& inPath);
 
 		// Member functions
 	private:
 		// SVG contour
+		// Build an SVG item for one solder ball.
 		AnswerType GetBallItem(SVGItem& outLeadTpl, const float& inRadius);
+		// Combine all solder-ball SVG items into one component contour.
 		AnswerType GetBallSourceItem(std::vector<SVGItem>& outBallCompTpl, const float& inRadius);
 
 		// Template drawing
+		// Draw the sampled contour for one solder ball.
 		AnswerType GetBallTemplate(std::vector<cv::Mat>& outLeadTpl, const float& inRadius, const float& inSplStep);
+		// Draw a fixed-sample solder-ball contour.
 		AnswerType GetBallTemplateFix(std::vector<cv::Mat>& outLeadTpl, const float& inRadius, const int& inSplNum);
+		// Combine all solder balls into one component template.
 		AnswerType GetBallSourceTemplate(std::vector<cv::Mat>& outBallCompTpl, const float& inRadius, const float& inSplStep, const int& inPyrLvl);
+		// Build per-ball subtemplates for detailed checking.
 		AnswerType GetSingleBallSourceTemplate(std::vector<std::vector<cv::Mat>>& outBallCompTpl, const float& inRadius, const float& inSplStep, const int& inPyrLvl);
 
 		// Member variables

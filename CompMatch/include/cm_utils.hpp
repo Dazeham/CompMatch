@@ -11,8 +11,10 @@
 
 namespace cm {
 //////*****************    Cubic spline interpolation    ******************//////
+    // Fits a natural cubic spline through ordered 2D samples.
     struct CubicSpline {
         std::vector<double> a, b, c, d, x;
+        // Build spline coefficients from sample points.
         void build(const std::vector<cv::Point2f>& points) {
             int n = points.size() - 1;
             x.resize(n + 1);
@@ -57,6 +59,7 @@ namespace cm {
                 d[j] = (c[j + 1] - c[j]) / (3.0 * h[j]);
             }
         }
+        // Evaluate the spline at one x coordinate.
         double interpolate(double X) {
             int n = x.size() - 1;
             int i = n - 1;
@@ -69,6 +72,7 @@ namespace cm {
             double dx = X - x[i];
             return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
         }
+        // Find the maximum y value across spline intervals.
         cv::Point2d findSplineMaxXY()
         {
             int n = x.size() - 1;
@@ -128,6 +132,7 @@ namespace cm {
 
 
 //////*****************    Asymmetric Gaussian    ******************//////
+    // Evaluate the asymmetric Gaussian profile.
     inline double asymmetricGaussianFunction(double x, const Eigen::VectorXd& params) {
         double term = 0;
         if (x <= params(1)) {
@@ -139,6 +144,7 @@ namespace cm {
         return params(0) * (2. / std::sqrt(2 * CV_PI)) * (1. / (params(2) + params(3))) * term;
     }
 
+    // Compute the Jacobian for asymmetric Gaussian fitting.
     inline Eigen::VectorXd asymmetricGaussianJacobian(double x, const Eigen::VectorXd& params) {
         double p0 = params(0);
         double p1 = params(1);
@@ -174,6 +180,7 @@ namespace cm {
         return jac;
     }
 
+    // Adapts asymmetric Gaussian residuals to Eigen's optimizer.
     struct asymmetricGaussianFunctor {
         asymmetricGaussianFunctor(const std::vector<cv::Point2f>& inPts) : mPts(inPts) {};
         const std::vector<cv::Point2f>& mPts;
@@ -195,6 +202,7 @@ namespace cm {
         }
     };
 
+    // Fit asymmetric Gaussian parameters to sampled points.
     inline Eigen::VectorXd asymmetricGaussianFit(const std::vector<cv::Point2f>& points, const Eigen::VectorXd& initParam) {
         Eigen::VectorXd params = initParam;
         asymmetricGaussianFunctor functor(points);
@@ -210,10 +218,12 @@ namespace cm {
 
 
 //////*****************    Smooth asymmetry    ******************//////
+    // Evaluate the logistic sigmoid helper.
     inline double sigmoid(double x) {
         return 1.0 / (1.0 + std::exp(-x));
     }
 
+    // Evaluate the smooth asymmetric profile.
     inline double smoothAsymmetricFunction(double x, const Eigen::VectorXd& params) {
         const double u = x - params(1);
         const double term1 = params(2) * sigmoid(u);
@@ -222,6 +232,7 @@ namespace cm {
         return params(0) * std::exp(-exponent);
     }
 
+    // Compute the Jacobian for smooth asymmetric fitting.
     inline Eigen::VectorXd smoothAsymmetricJacobian(double x, const Eigen::VectorXd& params) {
         double u = x - params(1);
         double sigma_u = sigmoid(u);
@@ -243,6 +254,7 @@ namespace cm {
         return jac;
     }
 
+    // Adapts smooth asymmetric residuals to Eigen's optimizer.
     struct smoothAsymmetricFunctor {
         smoothAsymmetricFunctor(const std::vector<cv::Point2f>& inPts) : mPts(inPts) {};
         const std::vector<cv::Point2f>& mPts;
@@ -264,6 +276,7 @@ namespace cm {
         }
     };
 
+    // Fit smooth asymmetric profile parameters to sampled points.
     inline Eigen::VectorXd smoothAsymmetricFit(const std::vector<cv::Point2f>& points, const Eigen::VectorXd& initParam) {
         Eigen::VectorXd params = initParam;
         smoothAsymmetricFunctor functor(points);
@@ -279,6 +292,7 @@ namespace cm {
 
 
 //////*****************    Distance    ******************//////
+    // Evaluate the distance model used for pose refinement.
     inline double distanceFunction(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];
@@ -302,6 +316,7 @@ namespace cm {
         return res;
     }
 
+    // Compute the Jacobian for the distance model.
     inline Eigen::VectorXd distanceJacobian(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];
@@ -336,6 +351,7 @@ namespace cm {
         return jac;
     }
 
+    // Adapts distance-model residuals to Eigen's optimizer.
     struct distanceFunctor {
         distanceFunctor(const std::vector<cv::Mat>& inMat, const cv::Point2f& inScaleFactor) : inMat(inMat), inScaleFactor(inScaleFactor) {}
         const std::vector<cv::Mat>& inMat;
@@ -375,6 +391,7 @@ namespace cm {
         }
     };
 
+    // Fit distance-model pose parameters.
     inline Eigen::VectorXd distanceFit(const std::vector<cv::Mat>& inMat, const Eigen::VectorXd& initParams, const cv::Point2f& inScaleFactor) {
         Eigen::VectorXd params = initParams;
         distanceFunctor functor(inMat, inScaleFactor);
@@ -389,6 +406,7 @@ namespace cm {
     }
 
 //////*****************    Distance repair    ******************//////
+    // Evaluate the repaired distance model used for pose refinement.
     inline double distanceFunctionFix(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];
@@ -412,6 +430,7 @@ namespace cm {
         return res;
     }
 
+    // Compute the Jacobian for the repaired distance model.
     inline Eigen::VectorXd distanceJacobianFix(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];
@@ -445,6 +464,7 @@ namespace cm {
         return jac;
     }
 
+    // Adapts repaired distance residuals to Eigen's optimizer.
     struct distanceFunctorFix {
         distanceFunctorFix(const std::vector<cv::Mat>& inMat, const cv::Point2f& inScaleFactor) : inMat(inMat), inScaleFactor(inScaleFactor) {}
         const std::vector<cv::Mat>& inMat;
@@ -484,6 +504,7 @@ namespace cm {
         }
     };
 
+    // Fit repaired distance-model pose parameters.
     inline Eigen::VectorXd distanceFitFix(const std::vector<cv::Mat>& inMat, const Eigen::VectorXd& initParams, const cv::Point2f& inScaleFactor) {
         Eigen::VectorXd params = initParams;
         distanceFunctorFix functor(inMat, inScaleFactor);

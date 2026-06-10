@@ -10,6 +10,7 @@ namespace {
 }
 
 namespace cm {
+    // Convert a HALCON tuple into a typed std::vector.
     template<typename T>
     std::vector<T> tupleToVector(const HalconCpp::HTuple& inTuple) {
         std::vector<T> result;
@@ -31,6 +32,7 @@ namespace cm {
         return result;
     }
 
+    // Convert strings into a HALCON tuple.
     HalconCpp::HTuple vectorToHTuple(const std::vector<std::string>& inVec) {
         HalconCpp::HTuple tuple;
         for (const auto& s : inVec)

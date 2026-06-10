@@ -5,41 +5,49 @@
 
 
 namespace cm {
+    // Create a homogeneous translation matrix.
     inline cv::Mat getTranslationTransformationMatrix(const cv::Point2d& inDeltaXY) {
         return (cv::Mat_<double>(3, 3) << 1, 0, inDeltaXY.x, 0, 1, inDeltaXY.y, 0, 0, 1);
     }
 
+    // Create a homogeneous rotation matrix from degrees.
     inline cv::Mat getRotationTransformationMatrix(const double& inDeltaA) {
         const double T = inDeltaA / 180. * CV_PI;
         const double sinT = sin(T), cosT = cos(T);
         return (cv::Mat_<double>(3, 3) << cosT, -sinT, 0, sinT, cosT, 0, 0, 0, 1);
     }
 
+    // Create a homogeneous anisotropic scaling matrix.
     inline cv::Mat getScaleTransformationMatrix(const cv::Point2d& inSclFacXY) {
         return cv::Mat_<double>(3, 3) << inSclFacXY.x, 0, 0, 0, inSclFacXY.y, 0, 0, 0, 1;
     }
 
+    // Create a horizontal flip matrix for an image.
     inline cv::Mat getFlipHorizontalTransformationMatrix(const cv::Size& inImgSize) {
         return cv::Mat_<double>(3, 3) << -1, 0, inImgSize.width - 1, 0, 1, 0, 0, 0, 1;
     }
 
+    // Create a vertical flip matrix for an image.
     inline cv::Mat getFlipVerticalTransformationMatrix(const cv::Size& inImgSize) {
         return cv::Mat_<double>(3, 3) << 1, 0, 0, 0, -1, inImgSize.height - 1, 0, 0, 1;
     }
 
+    // Create a combined horizontal and vertical flip matrix.
     inline cv::Mat getFlipAllTransformationMatrix(const cv::Size& inImgSize) {
         return cv::Mat_<double>(3, 3) << -1, 0, inImgSize.width - 1, 0, -1, inImgSize.height - 1, 0, 0, 1;
     }
 
+    // Create a matrix that swaps x and y coordinates.
     inline cv::Mat getTranspositionTransformationMatrix() {
         return cv::Mat_<double>(3, 3) << 0, 1, 0, 1, 0, 0, 0, 0, 1;
     }
 
+    // Convert a 3x3 homogeneous matrix to an OpenCV 2x3 affine matrix.
     inline cv::Mat getAffineMatrix(const cv::Mat& inAffineMat33) {
         return inAffineMat33(cv::Rect(0, 0, 3, 2)).clone();
     }
     
-
+    // Rotate an image around its center into a target canvas.
     inline cv::Mat getCtrRotImg(const cv::Mat& inSrcImg, const cv::Size& inImgSize, const double& inAngle) {
         const cv::Point2d srcCtr((inSrcImg.cols - 1) * 0.5, (inSrcImg.rows - 1) * 0.5);
         const cv::Mat transMat1 = getTranslationTransformationMatrix(-srcCtr);
@@ -52,6 +60,7 @@ namespace cm {
         return resMat;
     }
 
+    // Translate an image center into a target canvas.
     inline cv::Mat getCtrTraImg(const cv::Mat& inSrcImg, const cv::Size& inImgSize, const cv::Point2d& inDelta) {
         const cv::Point2d srcCtr((inSrcImg.cols - 1) * 0.5, (inSrcImg.rows - 1) * 0.5);
         const cv::Mat transMat1 = getTranslationTransformationMatrix(-srcCtr);
@@ -63,6 +72,7 @@ namespace cm {
         return resMat;
     }
 
+    // Apply center-based scale and rotation into a target image.
     inline void getCenterScalingAndRotationTransformationImage(const cv::Mat& inRotImg, const cv::Point2d& inSclFac, const cv::Point2d& inRotCtr, const double& inRotAng, cv::Mat& outResImg, const cv::Size& inResSize, const cv::Point2d& inResCtr, const int& inAffFlag = cv::INTER_LINEAR) {
         const cv::Mat transMat1 = getTranslationTransformationMatrix(-inRotCtr);
         const cv::Mat scaleMat = getScaleTransformationMatrix(inSclFac);
@@ -72,6 +82,7 @@ namespace cm {
         cv::warpAffine(inRotImg, outResImg, transMat, inResSize, inAffFlag);
     }
 
+    // Apply translate-rotate-translate warping to an image.
     inline cv::Mat getTRTImg(const cv::Mat& inSrcImg, const cv::Point2f& inT1, const float& inR, const cv::Point2f& inT2, const cv::Size& inSize, const int& inAffFlag = cv::INTER_LINEAR) {
         const cv::Mat tMat1 = getTranslationTransformationMatrix(inT1);
         const cv::Mat rMat = getRotationTransformationMatrix(inR);

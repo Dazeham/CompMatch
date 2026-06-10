@@ -7,6 +7,7 @@
 #include "cm_error_code.hpp"
 
 
+// Writes lightweight SVG debug overlays with optional image backgrounds.
 class SVGTool {
 public:
 	// Use images as the background.
@@ -56,6 +57,7 @@ public:
 			"viewBox=\"0 0 " << inWidth << " " << inHeight << "\">\n";
 	}
 
+	// Draw a filled or stroked circle.
 	void drawCircle(const cv::Point2f& inPos, const float& inR, const std::string& inColor, const float& inWidth = -1) {
 		if (inWidth <= 0) {
 			ofs << "<circle cx=\"" << inPos.x
@@ -75,6 +77,7 @@ public:
 		}
 	}
 
+	// Draw a straight line segment.
 	void drawLine(const cv::Point2f& inPt1, const cv::Point2f& inPt2, const float& inTk, const std::string& inColor) {
 		ofs << "<line x1=\"" << inPt1.x
 			<< "\" y1=\"" << inPt1.y
@@ -85,6 +88,7 @@ public:
 			<< "\" />\n";
 	}
 
+	// Draw a rotated rectangle.
 	void drawRect(const cv::Point2f& inCtr, const cv::Size2f inSize, const float& inAngle, const float& inTk, const std::string& inColor, const std::string& inFill = "none") {
 		ofs << "<rect x=\"" << inCtr.x - inSize.width * 0.5
 			<< "\" y=\"" << inCtr.y - inSize.height * 0.5
@@ -97,6 +101,7 @@ public:
 			<< ")\" />\n";
 	}
 
+	// Draw text at an image-space position.
 	void drawText(const cv::Point2f& inPos, const std::string& inColor, const std::string& inSize, const std::string& inText, const std::string& inFamily = "Arial", const std::string& inFill = "none") {
 		ofs << "<text x=\"" << inPos.x
 			<< "\" y=\"" << inPos.y
@@ -107,6 +112,7 @@ public:
 			<< "</text>\n";
 	}
 
+	// Finish and close the SVG document.
 	void close() {
 		if (ofs.is_open()) {
 			ofs << "</svg>\n";
@@ -122,6 +128,7 @@ public:
 	}
 
 private:
+	// Encode PNG bytes for embedding in the SVG.
 	std::string base64_encode(const unsigned char* bytes_to_encode, size_t in_len) {
 		static const std::string base64_chars =
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -169,6 +176,7 @@ private:
 	std::ofstream ofs;
 };
 
+// Represents a simple rectangular SVG primitive with rotation.
 struct SVGItem {
 	SVGItem() : cx(0.), cy(0.), w(0.), h(0.), r(0.) {};
 
@@ -182,6 +190,7 @@ struct SVGItem {
 	}
 };
 
+// Translate one SVG item by an offset.
 inline AnswerType GetTranslatedItem(const SVGItem& inSrcItem, SVGItem& outDstItem, const cv::Point2f& inOffset) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -193,6 +202,7 @@ inline AnswerType GetTranslatedItem(const SVGItem& inSrcItem, SVGItem& outDstIte
 	return answer;
 }
 
+// Translate a list of SVG items by an offset.
 inline AnswerType GetTranslatedItems(const std::vector<SVGItem>& inVecSrcItem, std::vector<SVGItem>& outVecDstItem, const cv::Point2f& inOffset) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -207,6 +217,7 @@ inline AnswerType GetTranslatedItems(const std::vector<SVGItem>& inVecSrcItem, s
 	return answer;
 }
 
+// Rotate one SVG item around the origin.
 inline AnswerType GetRotatedItem(const SVGItem& inSrcItem, SVGItem& outDstItem, const float& inAng) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -223,6 +234,7 @@ inline AnswerType GetRotatedItem(const SVGItem& inSrcItem, SVGItem& outDstItem, 
 	return answer;
 }
 
+// Rotate a list of SVG items around the origin.
 inline AnswerType GetRotatedItems(const std::vector<SVGItem>& inVecSrcItem, std::vector<SVGItem>& outVecDstItem, const float& inAng) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -237,6 +249,7 @@ inline AnswerType GetRotatedItems(const std::vector<SVGItem>& inVecSrcItem, std:
 	return answer;
 }
 
+// Merge grouped SVG items into one flat list.
 inline AnswerType GetMergedItems(const std::vector<std::vector<SVGItem>>& inVecSrcItem, std::vector<SVGItem>& outVecDstItem) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 

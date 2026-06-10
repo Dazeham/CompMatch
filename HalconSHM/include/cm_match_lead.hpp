@@ -5,16 +5,21 @@
 
 
 namespace cm {
+	// Builds and matches HALCON shape models for leaded components.
 	class CTemplateShapeLead : public CTemplatePartGroup {
 	public:
 		CTemplateShapeLead() = delete;
 		CTemplateShapeLead(float inScaleX, float inScaleY);
 		~CTemplateShapeLead() {};
+		// Build a leaded-component HALCON shape model.
 		AnswerType GenerateTemplate(std::shared_ptr<Component> inCompPtr);
 
 	private:
+		// Draw one lead as a HALCON contour template.
 		AnswerType GetLeadTemplate(const cv::Size2f& inLeadSize, HalconCpp::HObject& outLeadTpl);
+		// Arrange one lead template into a lead-side group.
 		AnswerType GetLeadGroupTemplate(const HalconCpp::HObject& inLeadTpl, HalconCpp::HObject& outLeadGroupTpl, const int& inLeadNum, const float& inLeadPitch, const std::vector<int>& inCutParam, const float& inAng, const cv::Point2f& inLeadCenter);
+		// Combine all lead groups into one component template.
 		AnswerType GetLeadSourceTemplate(HalconCpp::HObject& outLeadCompTpl, const std::vector<double>& inLeadWidths, const std::vector<double>& inLeadLengths, const std::vector<int>& inLeadNums, const std::vector<double>& inLeadPitches, const std::vector<std::vector<int>>& inCutParams, const std::vector<double>& inCenterXs, const std::vector<double>& inCenterYs);
 
 	private:

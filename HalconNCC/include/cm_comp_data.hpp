@@ -13,12 +13,14 @@
 using json = nlohmann::json;
 
 namespace cm {
+	// Enumerates supported component families.
 	enum ComponentType {
 		BOX_COMPONENT = 0,
 		LEAD_COMPONENT = 1,
 		BALL_GROUP_COMPONENT = 2,
 	};
 
+	// Stores dimensions shared by all component types.
 	class CommonData {
 	public:
 		CommonData();
@@ -35,12 +37,14 @@ namespace cm {
 		double width_;	
 	};
 
+	// Identifies the concrete configuration block type.
 	enum class ConfigurationBasicType {
 		MOLD = 0,
 		LEAD_GROUP = 1,
 		BALL_GROUP = 2,
 	};
 
+	// Base class for component-specific configuration blocks.
 	class AbstractConfigurationBasic {
 	public:
 		AbstractConfigurationBasic();
@@ -68,6 +72,7 @@ namespace cm {
 		ConfigurationBasicType component_basic_type_;
 	};
 
+	// Owns common data and typed configuration blocks for one component.
 	class Component {
 	public:
 		Component();
@@ -98,6 +103,7 @@ namespace cm {
 		ConfigTypeMap configuration_basic_list_;
 	};
 
+	// Stores mold feature geometry.
 	class MoldParam {
 	public:
 		struct ShapeParam {
@@ -118,6 +124,7 @@ namespace cm {
 		ShapeParam shape_param_;
 	};
 
+	// Holds all mold parameters for a component.
 	class MoldBasic : public AbstractConfigurationBasic {
 	public:
 		MoldBasic();
@@ -147,6 +154,7 @@ namespace cm {
 		std::vector<MoldParam> mold_param_;
 	};
 
+	// Stores missing-lead ranges for lead groups.
 	class CutLeadParam {
 	public:
 		struct ACutLeadParam {
@@ -167,6 +175,7 @@ namespace cm {
 		std::vector<ACutLeadParam> cut_lead_param_;
 	};
 
+	// Stores one lead-group geometry and optional missing leads.
 	class LeadGroupParam {
 	public:
 		struct ShapeParam {
@@ -193,6 +202,7 @@ namespace cm {
 		CutLeadParam cut_lead_param_;
 	};
 
+	// Holds all lead-group parameters for a component.
 	class LeadGroupBasic : public AbstractConfigurationBasic {
 	public:
 		LeadGroupBasic();
@@ -222,6 +232,7 @@ namespace cm {
 		std::vector<LeadGroupParam> lead_group_param_;
 	};
 
+	// Stores missing-ball ranges for ball grids.
 	class LackBallParam {
 	public:
 		struct LackParam {
@@ -247,6 +258,7 @@ namespace cm {
 		std::vector<LackParam> lack_param_list_;
 	};
 
+	// Stores ball-grid geometry and optional missing balls.
 	class BallGroupParam {
 	public:
 		struct ShapeParam {
@@ -284,6 +296,7 @@ namespace cm {
 		LackBallParam lack_ball_param_;
 	};
 
+	// Holds all ball-grid parameters for a component.
 	class BallGroupBasic : public AbstractConfigurationBasic {
 	public:
 		BallGroupBasic();

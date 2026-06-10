@@ -5,11 +5,13 @@
 
 
 namespace cm {
+	// Builds and matches HALCON shape models for box components.
 	class CTemplateShapeBoxType : public CTemplatePartGroup {
 	public:
 		CTemplateShapeBoxType() = delete;
 		CTemplateShapeBoxType(float inScaleX, float inScaleY);
 		~CTemplateShapeBoxType() {};
+		// Build a box-component HALCON shape model.
 		AnswerType GenerateTemplate(std::shared_ptr<Component> inCompPtr);
 
 	private:

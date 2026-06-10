@@ -1238,6 +1238,7 @@ AnswerType CTemplateShapeBoxType::GetRectSizeTolerance(const cv::Size2f& inRectS
 }
 
 // Extra matching
+// Build the inverse transform for scaled and rotated crop coordinates.
 AnswerType GetScalingInvTransMatrix(const cv::Point2d& inSclFac, const cv::Point2d& inRotCtr, const double& inRotAng, const cv::Point2d& inResCtr, cv::Mat& outInvMat) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1254,6 +1255,7 @@ AnswerType GetScalingInvTransMatrix(const cv::Point2d& inSclFac, const cv::Point
 }
 
 // Subpixel
+// Extract high-confidence edge points from image columns.
 inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f>& outVecPt, std::vector<float>& outVecVal, const float& inLineUseRatio, const float& inLineRowBegRatio, const float& inLineMagTresh = 0.15) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
     if (inSrcImg.type() != CV_32FC1) {
@@ -1451,10 +1453,12 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
     return answer;
 }
 
+// Stores a fitted 2D line in implicit form.
 struct LineModel {
     float A, B, C;
 };
 
+// Fit a robust line model with RANSAC.
 inline LineModel fitLineRANSAC(const std::vector<cv::Point2f>& points,
     int& inrPtNum,
     int maxIter = 1000,
@@ -1531,6 +1535,7 @@ inline LineModel fitLineRANSAC(const std::vector<cv::Point2f>& points,
     return bestModel;
 }
 
+// Estimate border offset and angle from one magnitude image.
 inline AnswerType GetMagBrdPosAndAng(const cv::Mat& inMagImg, const std::vector<cv::Point2f>& inVecPt, const float& inLineDistTresh, float& outMidY, float& outAng, int& outInrPtNum) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1577,6 +1582,7 @@ inline AnswerType GetMagBrdPosAndAng(const cv::Mat& inMagImg, const std::vector<
     return answer;
 }
 
+// Estimate border offset and angle from paired magnitude images.
 inline AnswerType GetMagBrdPosAndAngX(const cv::Mat& inMagImg1, const cv::Mat& inMagImg2, const std::vector<cv::Point2f>& inVecPt1, const std::vector<cv::Point2f>& inVecPt2, const float& inLineDistTresh, float& outMidY, float& outAng, int& outInrPtNum) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1684,6 +1690,7 @@ inline AnswerType GetMagBrdPosAndAngX(const cv::Mat& inMagImg1, const cv::Mat& i
 }
 
 template <typename P1, typename P2>
+// Apply an affine matrix to one point.
 AnswerType GetAffinePoint(const P1& inPt, const cv::Mat& inAffMat, P2& outPt) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1965,6 +1972,7 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
 }
 
 // Result checking
+// Crop a centered side band from an image.
 inline AnswerType GetSideCropImg(const cv::Mat& inImg, cv::Mat& outImg, const float& inCropRatio = 0.1) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1982,6 +1990,7 @@ inline AnswerType GetSideCropImg(const cv::Mat& inImg, cv::Mat& outImg, const fl
     return answer;
 }
 
+// Split an image into two halves.
 inline AnswerType GetSplitImg(const cv::Mat& inImg, cv::Mat& outImg0, cv::Mat& outImg1, const bool& inHorFlg = true) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 

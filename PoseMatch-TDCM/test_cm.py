@@ -46,7 +46,7 @@ for taskPath in vecTask:
 
 
 for folderPath in vecFolderPath:
-    # 模板绘制
+    # Template drawing
     template_image_path = folderPath + "\\CompTpl.png"
     template = cv2.imread(template_image_path)
     template = cv2.resize(template, (36, 36))
@@ -76,18 +76,18 @@ for folderPath in vecFolderPath:
         pred_score, pred_sign, pred_cos, pred_scale_x, pred_scale_y = model(image, template)
         inference_time = time.perf_counter() - start_time
         
-        # 计算 center
+        # Compute center
         pred = pred_score[0, 0, :, :]
         max_idx = torch.nonzero(pred == pred.max())[0]
         pre_Y, pre_X = max_idx.cpu().numpy()
         pred_y, pred_x = get_center((pre_Y, pre_X), torch.nonzero(pred > 0.5).cpu().numpy())
         
-        # 计算 角度
+        # Compute angle
         sign = 1 if pred_sign[0, 0, pre_Y, pre_X] > 0.5 else -1
         pred_r = torch.arccos(pred_cos[0, 0, pre_Y, pre_X].clamp(-1, 1)) * 180 / math.pi
         pred_r = sign * pred_r.item()
         
-        # 计算缩放
+        # Compute scale
         pred_sx = pred_scale_x[0, 0, pre_Y, pre_X].item()
         pred_sy = pred_scale_y[0, 0, pre_Y, pre_X].item()
         
@@ -97,7 +97,7 @@ for folderPath in vecFolderPath:
         search_img = cv2.cvtColor(search_img, cv2.COLOR_BGR2GRAY)
         template_img = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
         
-        # 细化
+        # Refinement
         post_start = time.time()
         refined_angle, refine_score = refine_angle_bisection(
             search_img, template_img, pred_x, pred_y, pred_sx, pred_sy, pred_r,

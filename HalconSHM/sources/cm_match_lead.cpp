@@ -13,7 +13,7 @@ CTemplateShapeLead::CTemplateShapeLead(float inScaleX, float inScaleY) : CTempla
 AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCompPtr) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	/***   获取参数   ***/
+	/***   Get parameters   ***/
 	const float meanScale = (mScaleX + mScaleY) * 0.5;
     mTotalX = inCompPtr->GetCommonData().GetComponentLenth() / meanScale;
     mTotalY = inCompPtr->GetCommonData().GetComponentWidth() / meanScale;
@@ -28,14 +28,14 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	mMoldX = moldParam.GetShapeParam().length / meanScale;
 	mMoldY = moldParam.GetShapeParam().width / meanScale;
 
-	mVecLeadNum.resize(4);	           //引脚数目
+	mVecLeadNum.resize(4);	           //Lead count
 	std::fill(mVecLeadNum.begin(), mVecLeadNum.end(), 0);
-	mVecLeadPitch.resize(4);	           //引脚间距
-	mVecLeadLength.resize(4);           //引脚长度
-	mVecLeadWidth.resize(4);	           //引脚宽度
-	mVecCenterX.resize(4);              //引脚组中心x
-	mVecCenterY.resize(4);              //引脚组中心y
-	mVecCutParam.resize(4);             // 缺失引脚
+	mVecLeadPitch.resize(4);	           //Lead pitch
+	mVecLeadLength.resize(4);           //Lead length
+	mVecLeadWidth.resize(4);	           //Lead width
+	mVecCenterX.resize(4);              //Lead-group center x
+	mVecCenterY.resize(4);              //Lead-group center y
+	mVecCutParam.resize(4);             // Missing leads
 
 	for (int i = 0; i < pLead->ParamCount(); ++i) {
 		LeadGroupParam leadParam = pLead->GetParam(i);
@@ -70,8 +70,8 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 		mVecCutParam[idx] = cutParam;
 	}
 
-	/***   绘制模板   ***/
-	//// 计算模板尺寸
+	/***   Draw template   ***/
+	//// Compute template size
 	const int maxSize = ceil(max(mTotalX, mTotalY));
 	mTplSize = cv::Size(maxSize + mBorWidth * 2, maxSize + mBorWidth * 2);
 	mTplCtr = cv::Point2f((mTplSize.width - 1) * 0.5, (mTplSize.height - 1) * 0.5);
@@ -82,7 +82,7 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	HalconCpp::HObject leadSrcTpl;
 	GetLeadSourceTemplate(leadSrcTpl, mVecLeadWidth, mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY);
 
-	// 创建Shape模型
+	// Create Shape model
 	CreateShapeModelXld(leadSrcTpl,
 		mPyramidLevels,
 		DegToRad(mBeginAngle),

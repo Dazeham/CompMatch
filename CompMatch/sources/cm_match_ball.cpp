@@ -7,7 +7,7 @@
 using namespace cm;
 
 CTemplateShapeBall::CTemplateShapeBall(float inScaleX, float inScaleY) : CTemplatePartGroup(inScaleX, inScaleY) {
-	// 元件参数
+	// Component parameters
 	mTotalX = 0;
 	mTotalY = 0;
 	mMoldX = 0;
@@ -18,7 +18,7 @@ CTemplateShapeBall::CTemplateShapeBall(float inScaleX, float inScaleY) : CTempla
 	mPitchX = 0;
 	mPitchY = 0;
 
-	// 匹配参数
+	// Matching parameters
 	mStepNum = 0;
 	mAngleRange = 0;
 };
@@ -26,11 +26,11 @@ CTemplateShapeBall::CTemplateShapeBall(float inScaleX, float inScaleY) : CTempla
 AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCompPtr) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	// 获取刻度
+	// Get scale
 	const double minScale = std::min(mScaleX, mScaleY);
 	mScaleFactor = cv::Point2d(mScaleX < mScaleY ? 1 : minScale / mScaleX, mScaleY < mScaleX ? 1 : minScale / mScaleY);
 
-	// 获取球珊元件参数
+	// Get ball-grid component parameters
 	mTotalX = inCompPtr->GetCommonData().GetComponentLenth() / minScale;
 	mTotalY = inCompPtr->GetCommonData().GetComponentWidth() / minScale;
 
@@ -57,7 +57,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 		mLack(cv::Rect(lack.start_col - 1, lack.start_row - 1, lack.last_col - lack.start_col + 1, lack.last_row - lack.start_row + 1)).setTo(0);
 	}
 
-	// 绘制源模板 无缩放 无旋转 模板超限保护
+	// Draw source template without scaling or rotation, with template bounds protection
 	std::vector<cv::Mat> ballSrcTpl;
 	answer = GetBallSourceTemplate(ballSrcTpl, mAvgR, 1, 0);
 	if (answer.first != ALGErrCode::IMG_SUCCESS) return answer;
@@ -65,7 +65,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	float baseSplStep = 1;
 	GetBaseSampleStep(ballSrcTpl, baseSplStep);
 
-	// 设置匹配参数
+	// Set matching parameters
 	mStepNum = 3;
 	//if ((mTotalX + mTotalY) >= 60) {
 		mPyramidLevels = { 2, 1, 0 };
@@ -82,14 +82,14 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	GetStepAngles(cv::Size2d(mTotalX, mTotalY), mBeginAngle, mEndAngle, mPyramidLevels, mStepAngles);
 	mAngleRange = mStepAngles[0];
 	
-	// 绘制球珊元件正模板
+	// Draw the ball-grid component upright template
 	mSampleSteps = { baseSplStep * mSplItv, baseSplStep * mSplItv, baseSplStep * mSplItv };
 	mBallStepTemplates.resize(mStepNum);
 	for (int stepNo = 0; stepNo < mStepNum; ++stepNo) {
 		GetBallSourceTemplate(mBallStepTemplates[stepNo], mAvgR, mSampleSteps[stepNo], mPyramidLevels[stepNo]);
 	}
 
-	// 严格限制模板规模
+	// Strictly limit template size
 	GetStrictSampleShapeTemplates(mBallStepTemplates, mBallStepTemplates);
 
 # ifdef _DEBUG
@@ -98,13 +98,13 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	}
 # endif
 
-	// 绘制旋转模板
+	// Draw rotated template
 	GetRotatedShapeTemplates(mBallStepTemplates[0], mBallRotTemplatesCoarse, mBeginAngle + mAngleRange, mEndAngle - mAngleRange, mStepAngles[0]);
 	GetScaleShapeTemplates(mBallRotTemplatesCoarse, mScaleFactor);
 	GetRotatedShapeTemplates(mBallStepTemplates[1], mBallRotTemplates, mBeginAngle, mEndAngle, mStepAngles[1]);
 	GetScaleShapeTemplates(mBallRotTemplates, mScaleFactor);
 
-	// 绘制多尺寸模板
+	// Draw multi-size templates
 	std::vector<float> vecRatio = { 1.0 };
 	mBallMultiScaleTemplates.resize(vecRatio.size());
 	for (int i = 0; i < vecRatio.size(); ++i) {
@@ -112,7 +112,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 		GetBallSourceTemplate(mBallMultiScaleTemplates[i], tmpRadius, mSampleSteps[2], mPyramidLevels[2]);
 	}
 
-	//// 绘制单个焊球模板用于球珊结果检查
+	//// Draw a single solder-ball template for ball-grid result checking
 	//GetSingleBallSourceTemplate(mBallTemplates, mAvgR, 1, 0);
 
 	return answer;
@@ -121,11 +121,11 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	// 截图
+	// Crop image
 	mPartImg = inSrcImg;
 	cv::Size2f gbaSize(mPitchX * (mLack.cols - 1) + mAvgR * 2, mPitchY * (mLack.rows - 1) + mAvgR * 2);
 
-	// 匹配
+	// Matching
 	cv::Point2f offset;
 	float angle = 0.;
 	float score = 0.;
@@ -136,15 +136,15 @@ AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 	answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mBallStepTemplates, mBallRotTemplatesCoarse, mBallRotTemplates, mBallMultiScaleTemplates, mPyramidLevels, mStepPixels, mMargins, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, gbaSize, gbaSize, mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
 	if (answer.first != ALGErrCode::IMG_SUCCESS) return answer;
 
-	// 箱形元件额外精度模块
+	// Extra precision module for box components
 #if showTimeFlag
-	double time_start = cv::getTickCount();  // 计时开始
+	double time_start = cv::getTickCount();  // Start timing
 #endif
 	mSrcImgCtr = cv::Point2f((mPartImg.size().width - 1) * 0.5, (mPartImg.size().height - 1) * 0.5);
 	mCropImgCtr = cv::Point2f((mCropImg.cols - 1) * 0.5, (mCropImg.rows - 1) * 0.5);
 	const cv::Point2f inScale(mScaleX, mScaleY);
 	mSclFac = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
-	// 亚像素方法 开始
+	// Subpixel method start
 	///*
 	answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mBallMultiScaleTemplates[0], cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
 	if (answer.first == ALGErrCode::IMG_SUCCESS) {
@@ -163,13 +163,13 @@ AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 		answer = IMG_SUCCESS_ANS().SetErrCode();
 	}
 	//*/
-	// 亚像素方法 结束
+	// Subpixel method end
 #if showTimeFlag
 	double tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // 计时结束
+	std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-	// 结果导出
+	// Export results
 	outOffset = offset;
 	outAngle = angle;
 	outScore = 50 + score * 0.5;
@@ -207,7 +207,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	cv::Point2f imgCenter((showImg.cols - 1) * 0.5, (showImg.rows - 1) * 0.5);
 	cv::Point2f offset(imgCenter.x + inOffset.x * powf(0.5, inPyrLvl - inMinPyrLvl), imgCenter.y + inOffset.y * powf(0.5, inPyrLvl - inMinPyrLvl));
 
-	//// 梯度模板
+	//// Gradient template
 	//for (int i = 0; i < rotTpl[0].cols; i++) {
 	//    int row = cvRound(rotTpl[1].ptr<float>()[i] + offset.y);
 	//    int col = cvRound(rotTpl[0].ptr<float>()[i] + offset.x);
@@ -220,7 +220,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//    pixel[2] = 0;
 	//}
 
-	//// 灰度模板
+	//// Grayscale template
 	//if (inSrcTpl.size() == 6) {
 	//    for (int i = 0; i < rotTpl[4].cols; i++) {
 	//        int row = cvRound(rotTpl[5].ptr<float>()[i] + offset.y);
@@ -235,7 +235,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//    }
 	//}
 
-	// 保存SVG
+	// Save SVG
 	cv::Mat magImg;
 	std::vector<cv::Mat> gradImgs;
 	cm::getNormalizedGradientAndMagnitudeImages(showImg, gradImgs, magImg, true);
@@ -249,9 +249,9 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	cv::Point2f imgOfs((inSrcImg.cols - roiImg.cols) * 0.5, (inSrcImg.rows - roiImg.rows) * 0.5);
 	SVGTool st(inPath, roiImg);
 
-	// 显示点
-	//st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // 原点
-	//for (int i = 0; i < rotTpl[0].cols; i++) {  // 梯度模板
+	// Show points
+	//st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // Origin
+	//for (int i = 0; i < rotTpl[0].cols; i++) {  // Gradient template
 	//    float row = rotTpl[1].ptr<float>()[i] + offset.y;
 	//    float col = rotTpl[0].ptr<float>()[i] + offset.x;
 	//    if (row < 0 || row >= showImg.rows || col < 0 || col >= showImg.cols) {
@@ -261,7 +261,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//    float radius = 0.6f;
 	//    st.drawCircle(centerPt - imgOfs + cv::Point2f(0.5, 0.5), radius, "#C44DFF");
 	//}
-	//if (rotTpl.size() == 6) {  // 灰度模板
+	//if (rotTpl.size() == 6) {  // Grayscale template
 	//	if (rotTpl[4].cols > 0) {
 	//		for (int i = 0; i < rotTpl[4].cols; i++) {
 	//			float row = rotTpl[5].ptr<float>()[i] + offset.y;
@@ -276,7 +276,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//	}
 	//}
 
-	// 显示轮廓线
+	// Show contour lines
 	std::vector<SVGItem> vecBallSrcTpl;
 	GetBallSourceItem(vecBallSrcTpl, mAvgR);
 	GetRotatedItems(vecBallSrcTpl, vecBallSrcTpl, inAngle);
@@ -295,7 +295,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	    st.drawLine(cv::Point(showImg.cols-1, 1), cv::Point(1, showImg.rows-1), 2, "red");
 	}
 
-	//// 显示分数
+	//// Show scores
 	//int fontSize = showImg.rows * 0.1;
 	//st.drawText(cv::Point2f(1, fontSize), "red", std::to_string(fontSize) + "px", "Time: " + std::to_string(inTime) + " ms");
 	//st.drawText(cv::Point2f(1, showImg.rows-1), "red", std::to_string(fontSize) + "px", "Score: " + std::to_string(score));
@@ -305,7 +305,7 @@ AnswerType CTemplateShapeBall::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	return answer;
 }
 
-// SVG轮廓
+// SVG contour
 AnswerType CTemplateShapeBall::GetBallItem(SVGItem& outLeadTpl, const float& inRadius) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -354,7 +354,7 @@ AnswerType CTemplateShapeBall::GetBallSourceItem(std::vector<SVGItem>& outBallCo
 	return answer;
 }
 
-// 模板绘制
+// Template drawing
 AnswerType CTemplateShapeBall::GetBallTemplate(std::vector<cv::Mat>& outLeadTpl, const float& inRadius, const float& inSplStep) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 

@@ -43,15 +43,15 @@ for folderPath in vecFolderPath:
         
         wstr = ''
         if len(results) > 0 and results[0].obb is not None and len(results[0].obb) > 0:
-            # 获取所有检测结果的置信度
+            # Get confidence scores for all detections
             confs = results[0].obb.conf.cpu().numpy()
           
-            # 找到置信度最高的索引
+            # Find the index with the highest confidence
             best_idx = np.argmax(confs)
           
-            # 提取置信度最高的检测框信息
+            # Extract the detection box with the highest confidence
             best_box = results[0].obb.xywhr.cpu().numpy()[best_idx]  # (5,)
-            best_conf = confs[best_idx]  # 最高置信度
+            best_conf = confs[best_idx]  # Highest confidence
 
             wstr = fileName + " " + str(50 + best_conf * 50) + " " + str(time_res * 1000) + " " + str(best_box[0] - img_ctr_x) + " " + str(best_box[1] - img_ctr_y) + " " + str(best_box[4] / np.pi * 180.) + "\n"
         else:

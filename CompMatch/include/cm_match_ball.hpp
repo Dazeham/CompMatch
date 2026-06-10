@@ -15,34 +15,34 @@ namespace cm {
 		AnswerType TemplateMatch(const cv::Mat& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore);
 		AnswerType SaveResult(const cv::Mat& inSrcImg, const cv::Point2f& inOffset, const float& inAngle, const float& inScore, const AnswerType& inAnswer, const double& inTime, const std::string& inPath);
 
-		// 成员函数
+		// Member functions
 	private:
-		// SVG轮廓
+		// SVG contour
 		AnswerType GetBallItem(SVGItem& outLeadTpl, const float& inRadius);
 		AnswerType GetBallSourceItem(std::vector<SVGItem>& outBallCompTpl, const float& inRadius);
 
-		// 模板绘制
+		// Template drawing
 		AnswerType GetBallTemplate(std::vector<cv::Mat>& outLeadTpl, const float& inRadius, const float& inSplStep);
 		AnswerType GetBallTemplateFix(std::vector<cv::Mat>& outLeadTpl, const float& inRadius, const int& inSplNum);
 		AnswerType GetBallSourceTemplate(std::vector<cv::Mat>& outBallCompTpl, const float& inRadius, const float& inSplStep, const int& inPyrLvl);
 		AnswerType GetSingleBallSourceTemplate(std::vector<std::vector<cv::Mat>>& outBallCompTpl, const float& inRadius, const float& inSplStep, const int& inPyrLvl);
 
-		// 成员变量
+		// Member variables
 	private:
-		// 元件参数
+		// Component parameters
 		cv::Point2d mScaleFactor;
 		double mTotalX;
 		double mTotalY;
 		double mMoldX;
 		double mMoldY;
-		int mNumX;  // X轴方向球数
-		int mNumY;  // Y轴方向球数
-		double mAvgR;  // 半径
-		double mPitchX;  // X轴方向球间距
-		double mPitchY;  // Y轴方向球间距
-		cv::Mat mLack;  // 缺失球
+		int mNumX;  // Ball count in X direction
+		int mNumY;  // Ball count in Y direction
+		double mAvgR;  // Radius
+		double mPitchX;  // Ball pitch in X direction
+		double mPitchY;  // Ball pitch in Y direction
+		cv::Mat mLack;  // Missing balls
 
-		// 匹配参数
+		// Matching parameters
 		int mStepNum;
 		std::vector<float> mSampleSteps;
 		std::vector<int> mPyramidLevels;
@@ -50,15 +50,15 @@ namespace cm {
 		std::vector<float> mStepAngles;
 		std::vector<int> mSobelSizes;
 		std::vector<float> mMargins;
-		float mAngleRange;  // 普通匹配角度范围
+		float mAngleRange;  // Normal matching angle range
 
-		// 形状模板
+		// Shape template
 		std::vector<std::vector<cv::Mat>> mBallStepTemplates;
 		std::vector<std::vector<cv::Mat>> mBallRotTemplatesCoarse;
 		std::vector<std::vector<cv::Mat>> mBallRotTemplates;
 		std::vector<std::vector<cv::Mat>> mBallMultiScaleTemplates;
 
-		// 结果检查
+		// Result checking
 		cv::Mat mPartImg;
 		cv::Point mLeftTop;
 		//std::vector<std::vector<cv::Mat>> mBallTemplates;

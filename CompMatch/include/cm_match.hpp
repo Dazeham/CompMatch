@@ -18,7 +18,7 @@ namespace cm {
         virtual AnswerType TemplateMatch(const cv::Mat& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore) = 0;
 		virtual AnswerType SaveResult(const cv::Mat& inSrcImg, const cv::Point2f& inOffset, const float& inAngle, const float& inScore, const AnswerType& inAnswer, const double& inTime, const std::string& inPath) = 0;
 
-		/* 形状模板匹配结构体 */
+		/* Shape-template matching structures */
 	public:
 		struct matchPoint {
 			float scoreG;
@@ -37,9 +37,9 @@ namespace cm {
 			}
 		};
 		
-		/* 形状模板匹配函数 */
+		/* Shape-template matching functions */
 	public:
-		// 模板绘制
+		// Template drawing
 		AnswerType GetStepAngles(const cv::Size2d& inSize, const float& inBegAng, const float& inEndAng, const std::vector<int>& inPyramidLevels, std::vector<float>& outStepAngles);
 		AnswerType GetTranslatedShapeTemplate(const std::vector<cv::Mat>& inSrcTpl, std::vector<cv::Mat>& outRotTpl, const cv::Point2f& inOffset);
 		AnswerType GetRotatedShapeTemplate(const std::vector<cv::Mat>& inSrcTpl, std::vector<cv::Mat>& outRotTpl, const float& inAng);
@@ -54,7 +54,7 @@ namespace cm {
 		AnswerType GetShapeDiagonalLength(const cv::Size2f& inRectSize, float& outDiaLen);
 		AnswerType GetScaleShapeTemplate(std::vector<cv::Mat>& inSrcTpl, const cv::Point2d& inSclFac);
 		AnswerType GetScaleShapeTemplates(std::vector<std::vector<cv::Mat>>& inSrcTpls, const cv::Point2d& inSclFac);
-		// 结果检查
+		// Result checking
 		AnswerType CheckShapeTemplates(const std::vector<cv::Mat>& inSrcTpl);
 		AnswerType CheckShapeTemplatesSVG(const std::vector<cv::Mat>& inSrcTpl);
 		AnswerType CheckMatchPoints(const cv::Mat& inSrcImg, const std::vector<matchPoint>& inMatchPts);
@@ -63,7 +63,7 @@ namespace cm {
 		AnswerType CheckMatchTemplate(const cv::Mat& inSrcImg, const std::vector<cv::Mat>& inSrcTpl, const cv::Point2f& inOffset, const float& inAngle, const int& inPyrLvl, const int& inMinPyrLvl, const cv::Point2d& inSclFac = cv::Point2d(1, 1));
 		cv::Mat GetCheckMatchTemplateImage(const cv::Mat& inSrcImg, const std::vector<cv::Mat>& inSrcTpl, const cv::Point2f& inOffset, const float& inAngle, const int& inPyrLvl, const int& inMinPyrLvl, const cv::Point2d& inSclFac = cv::Point2d(1, 1));
 		cv::Mat GetCheckMatchTemplateErrorImage(const cv::Mat& inSrcImg);
-		// 匹配
+		// Matching
 		AnswerType GetRegionRectImage(const cv::Mat& inSrcImg, cv::Mat& outResImg, const cv::Size2f& inPartSize, const cv::Point2d& inScale);
 		bool GetConvexHull(const cv::Mat& inMagImg, const std::vector<std::vector<cv::Mat>>& inRotTpls, const cv::Size2f& inCompSize, std::vector<cv::Point>& outDetectRange);
 		bool GetConvexHullX(const cv::Mat& inMagImg, const std::vector<std::vector<cv::Mat>>& inRotTpls, const cv::Size2f& inCompSize, std::vector<cv::Point>& outDetectRange);
@@ -77,7 +77,7 @@ namespace cm {
 		AnswerType GetMagnitudeErrorFlag(const cv::Mat& inMagBinImg, const std::vector<std::vector<cv::Mat>>& inConfTpls, const cv::Point2f& inOffset, const float& inAngle, const float& inMagErrT, std::vector<int>& outVecMagErrFlag);
 		AnswerType GetPrecisePosition(const cv::Point2f& inSrcImgCtr, const cv::Point2d& inScaleFactor, const std::vector<cv::Mat>& inSrcTpl, const cv::Point2f& inScale, const cv::Size& inSrcImgSize, const cv::Mat& inCropImg, const cv::Mat& inCropMagImg, const std::vector<cv::Mat>& inCropGradImgs, const cv::Point& inLeftTop, const cv::Size2d& inTotalSize, cv::Point2f& inOffset, float& inAngle);
 
-		/* 形状模板匹配参数 */
+		/* Shape-template matching parameters */
 	public:
 		double mScaleX;
 		double mScaleY;

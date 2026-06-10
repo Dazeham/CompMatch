@@ -92,7 +92,7 @@ AnswerType CTemplatePartGroup::GetTranslatedShapeTemplate(const std::vector<cv::
 	cv::Mat tTGX = inSrcTpl[2];
 	cv::Mat tTGY = inSrcTpl[3];
 
-	// 灰度模板
+	// Grayscale template
 	cv::Mat tTVX, tTVY;
 	if (inSrcTpl.size() == 6) {
 		tTVX = inSrcTpl[4] + inOffset.x;
@@ -123,7 +123,7 @@ AnswerType CTemplatePartGroup::GetRotatedShapeTemplate(const std::vector<cv::Mat
 	cv::Mat tRGX = inSrcTpl[2] * cos - inSrcTpl[3] * sin;
 	cv::Mat tRGY = inSrcTpl[3] * cos + inSrcTpl[2] * sin;
 
-	// 灰度模板
+	// Grayscale template
 	cv::Mat tRVX, tRVY;
 	if (inSrcTpl.size() == 6) {
 		tRVX = cos * inSrcTpl[4] - sin * inSrcTpl[5];
@@ -204,7 +204,7 @@ AnswerType CTemplatePartGroup::GetMergedShapeTemplate(const std::vector<std::vec
 		}
 	}
 
-	// 灰度模板
+	// Grayscale template
 	cv::Mat tVX, tVY;
 	if (grayFlag) {
 		int tplSizeV = 0;
@@ -457,7 +457,7 @@ AnswerType CTemplatePartGroup::GetScaleShapeTemplate(std::vector<cv::Mat>& inSrc
 		inSrcTpl[3] = inSrcTpl[3] * inSclFac.x / sqrtMat;
 	}
 
-	// 灰度模板
+	// Grayscale template
 	if (inSrcTpl.size() == 6) {
 		inSrcTpl[4] *= inSclFac.x;
 		inSrcTpl[5] *= inSclFac.y;
@@ -476,7 +476,7 @@ AnswerType CTemplatePartGroup::GetScaleShapeTemplates(std::vector<std::vector<cv
 	return answer;
 }
 
-// 结果检查
+// Result checking
 AnswerType CTemplatePartGroup::CheckShapeTemplates(const std::vector<cv::Mat>& inSrcTpl) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -505,7 +505,7 @@ AnswerType CTemplatePartGroup::CheckShapeTemplates(const std::vector<cv::Mat>& i
 		tGYImg.ptr<float>(row)[col] = tGY.ptr<float>()[i];
 	}
 
-	// 灰度模板
+	// Grayscale template
 	cv::Mat tVImg;
 	if (inSrcTpl.size() == 6) {
 		cv::Mat tVX = inSrcTpl[4];
@@ -550,7 +550,7 @@ AnswerType CTemplatePartGroup::CheckShapeTemplatesSVG(const std::vector<cv::Mat>
 	}
 
 
-	// 保存SVG
+	// Save SVG
 	SVGTool st("output2.svg", imgSize.width, imgSize.height);
 	for (int i = 0; i < tX.cols; i++) {
 		float row = std::min(std::max(tY.ptr<float>()[i] + imgOffset.y, float(0.)), float(imgSize.height - 1));
@@ -558,14 +558,14 @@ AnswerType CTemplatePartGroup::CheckShapeTemplatesSVG(const std::vector<cv::Mat>
 
 		cv::Point2f centerPt(col, row);
 		float radius = 1.5f;
-		std::string color = "#0000FF"; // 绿色
+		std::string color = "#0000FF"; // Green
 
 		st.drawCircle(centerPt, radius, color);
 	}
 	st.close();
 
 
-	// 灰度模板
+	// Grayscale template
 	cv::Mat tVImg;
 	if (inSrcTpl.size() == 6) {
 		cv::Mat tVX = inSrcTpl[4];
@@ -627,7 +627,7 @@ AnswerType CTemplatePartGroup::CheckMatchTemplate(const cv::Mat& inSrcImg, const
 		pixel[2] = 0;
 	}
 
-	// 灰度模板
+	// Grayscale template
 	if (inSrcTpl.size() == 6) {
 		for (int i = 0; i < rotTpl[4].cols; i++) {
 			int row = cvRound(rotTpl[5].ptr<float>()[i] + inPos.y);
@@ -683,7 +683,7 @@ AnswerType CTemplatePartGroup::CheckMatchTemplate(const cv::Mat& inSrcImg, const
 		pixel[2] = 0;
 	}
 
-	// 灰度模板
+	// Grayscale template
 	if (inSrcTpl.size() == 6) {
 		for (int i = 0; i < rotTpl[4].cols; i++) {
 			int row = cvRound(rotTpl[5].ptr<float>()[i] + offset.y);
@@ -739,7 +739,7 @@ AnswerType CTemplatePartGroup::CheckMatchTemplateSVG(const cv::Mat& inSrcImg, co
 		pixel[2] = 0;
 	}
 
-	// 灰度模板
+	// Grayscale template
 	if (inSrcTpl.size() == 6) {
 		for (int i = 0; i < rotTpl[4].cols; i++) {
 			int row = cvRound(rotTpl[5].ptr<float>()[i] + offset.y);
@@ -756,7 +756,7 @@ AnswerType CTemplatePartGroup::CheckMatchTemplateSVG(const cv::Mat& inSrcImg, co
 		}
 	}
 
-	// 保存SVG
+	// Save SVG
 	SVGTool st("output.svg", inSrcImg);
 	for (int i = 0; i < rotTpl[0].cols; i++) {
 		float row = rotTpl[1].ptr<float>()[i] + offset.y;
@@ -769,7 +769,7 @@ AnswerType CTemplatePartGroup::CheckMatchTemplateSVG(const cv::Mat& inSrcImg, co
 
 		cv::Point2f centerPt(col, row);
 		float radius = 1.5f;
-		std::string color = "#0000FF"; // 绿色
+		std::string color = "#0000FF"; // Green
 
 		st.drawCircle(centerPt, radius, color);
 	}
@@ -812,7 +812,7 @@ cv::Mat CTemplatePartGroup::GetCheckMatchTemplateImage(const cv::Mat& inSrcImg, 
 		pixel[2] = 0;
 	}
 
-	// 灰度模板
+	// Grayscale template
 	if (inSrcTpl.size() == 6) {
 		for (int i = 0; i < rotTpl[4].cols; i++) {
 			int row = cvRound(rotTpl[5].ptr<float>()[i] + offset.y);
@@ -851,7 +851,7 @@ cv::Mat CTemplatePartGroup::GetCheckMatchTemplateErrorImage(const cv::Mat& inSrc
 	return showImg;
 }
 
-// 匹配
+// Matching
 AnswerType CTemplatePartGroup::GetRegionRectImage(const cv::Mat& inSrcImg, cv::Mat& outResImg, const cv::Size2f& inPartSize, const cv::Point2d& inScale) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -885,7 +885,7 @@ AnswerType CTemplatePartGroup::GetRegionRectImage(const cv::Mat& inSrcImg, cv::M
 bool CTemplatePartGroup::GetConvexHull(const cv::Mat& inMagImg, const std::vector<std::vector<cv::Mat>>& inRotTpls, const cv::Size2f& inCompSize, std::vector<cv::Point>& outDetectRange) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	// 计算凸包边界
+	// Compute convex hull boundary
 	std::vector<cv::Point> nonZeroPts;
 	cv::findNonZero(inMagImg > 0.3, nonZeroPts);
 	if (nonZeroPts.size() < 3) {
@@ -896,7 +896,7 @@ bool CTemplatePartGroup::GetConvexHull(const cv::Mat& inMagImg, const std::vecto
 	cv::Rect roi = cv::boundingRect(nonZeroPts);
 	int minX = roi.x, minY = roi.y, maxX = roi.x + roi.width, maxY = roi.y + roi.height;
 
-	// 计算缩小半径
+	// Compute shrink radius
 	std::vector<double> vecTplMinX(inRotTpls.size(), 0);
 	std::vector<double> vecTplMinY(inRotTpls.size(), 0);
 	std::vector<double> vecTplMaxX(inRotTpls.size(), 0);
@@ -913,7 +913,7 @@ bool CTemplatePartGroup::GetConvexHull(const cv::Mat& inMagImg, const std::vecto
 	const double tplWidth = (*std::min_element(vecTplMaxX.begin(), vecTplMaxX.end()) - *std::max_element(vecTplMinX.begin(), vecTplMinX.end())) * ratio;
 	const double tplHeight = (*std::min_element(vecTplMaxY.begin(), vecTplMaxY.end()) - *std::max_element(vecTplMinY.begin(), vecTplMinY.end())) * ratio;
 
-	// 最终匹配区域
+	// Final matching region
 	if (maxX - minX - tplWidth <= 0 || maxY - minY - tplHeight <= 0 || tplWidth <= 0 || tplHeight <= 0) {
 		return false;
 	}
@@ -935,8 +935,8 @@ bool CTemplatePartGroup::GetConvexHull(const cv::Mat& inMagImg, const std::vecto
 #ifdef _DEBUG
 	cv::Mat showImg;
 	cv::cvtColor(inMagImg, showImg, cv::COLOR_GRAY2BGR);
-	cv::drawContours(showImg, std::vector<std::vector<cv::Point>>{{cv::Point(minX, minY), cv::Point(maxX, minY), cv::Point(maxX, maxY), cv::Point(minX, maxY)}}, -1, cv::Scalar(1, 0, 0), 1);  // 显示凸包
-	cv::rectangle(showImg, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Scalar(0, 0, 1));  // 显示位置约束
+	cv::drawContours(showImg, std::vector<std::vector<cv::Point>>{{cv::Point(minX, minY), cv::Point(maxX, minY), cv::Point(maxX, maxY), cv::Point(minX, maxY)}}, -1, cv::Scalar(1, 0, 0), 1);  // Show convex hull
+	cv::rectangle(showImg, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Scalar(0, 0, 1));  // Show position constraint
 #endif
 
 	return true;
@@ -1045,7 +1045,7 @@ inline void GetContinuousRegions(const cv::Mat& inSrcImg, const cv::Point& inLef
 bool CTemplatePartGroup::GetConvexHullX(const cv::Mat& inMagImg, const std::vector<std::vector<cv::Mat>>& inRotTpls, const cv::Size2f& inCompSize, std::vector<cv::Point>& outDetectRange) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	//// 计算凸包边界
+	//// Compute convex hull boundary
 	//std::vector<std::vector<cv::Point>> contours;
 	//cv::findContours(inMagImg > 0.3, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 	//if (contours.size() == 0) {
@@ -1058,7 +1058,7 @@ bool CTemplatePartGroup::GetConvexHullX(const cv::Mat& inMagImg, const std::vect
 	//cv::Mat tmpImg = cv::Mat::zeros(inMagImg.size(), CV_8UC1);
 	//cv::drawContours(tmpImg, std::vector<std::vector<cv::Point>>{contoursMerge}, -1, cv::Scalar(255), -1);
 
-	// 寻找非零方案
+	// Find non-zero solution
 	std::vector<cv::Point> nonZeroPts;
 	cv::findNonZero(inMagImg > 0.5, nonZeroPts);
 	if (nonZeroPts.size() < 3) {
@@ -1084,7 +1084,7 @@ bool CTemplatePartGroup::GetConvexHullX(const cv::Mat& inMagImg, const std::vect
 	}
 	cv::drawContours(tmpImg, std::vector<std::vector<cv::Point>>{tmpHullPts}, -1, cv::Scalar(255), -1);
 
-	// 计算缩小半径
+	// Compute shrink radius
 	std::vector<double> vecTplMinX(inRotTpls.size(), 0);
 	std::vector<double> vecTplMinY(inRotTpls.size(), 0);
 	std::vector<double> vecTplMaxX(inRotTpls.size(), 0);
@@ -1101,17 +1101,17 @@ bool CTemplatePartGroup::GetConvexHullX(const cv::Mat& inMagImg, const std::vect
 	const double tplWidth = (*std::min_element(vecTplMaxX.begin(), vecTplMaxX.end()) - *std::max_element(vecTplMinX.begin(), vecTplMinX.end()) + 1) * ratio;
 	const double tplHeight = (*std::min_element(vecTplMaxY.begin(), vecTplMaxY.end()) - *std::max_element(vecTplMinY.begin(), vecTplMinY.end()) + 1) * ratio;
 
-	// 输出匹配区域
+	// Output matching region
 	GetContinuousRegions(tmpImg, leftTop, tplWidth, tplHeight, outDetectRange);
 
 #ifdef _DEBUG
 	cv::Mat showImg;
 	cv::cvtColor(inMagImg, showImg, cv::COLOR_GRAY2BGR);
-	cv::drawContours(showImg, std::vector<std::vector<cv::Point>>{hullPts}, -1, cv::Scalar(0, 0, 1), 1);  // 显示凸包
+	cv::drawContours(showImg, std::vector<std::vector<cv::Point>>{hullPts}, -1, cv::Scalar(0, 0, 1), 1);  // Show convex hull
 	for (int ptNo = 0; ptNo < outDetectRange.size(); ++ptNo) {
 		cv::circle(showImg, outDetectRange[ptNo], 1, cv::Scalar(0, 1, 0), -1);
 	}
-	//cv::rectangle(showImg, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Scalar(0, 0, 1));  // 显示位置约束
+	//cv::rectangle(showImg, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Scalar(0, 0, 1));  // Show position constraint
 #endif
 
 	return true;
@@ -1145,9 +1145,9 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	const float moldX = inMoldSize.width * powf(0.5, inPyrLvl);
 	const float moldY = inMoldSize.height * powf(0.5, inPyrLvl);
 
-	// 计算梯度幅值图
+	// Compute gradient magnitude image
 //#if showTimeFlag
-//    time_start = cv::getTickCount();  // 计时开始
+//    time_start = cv::getTickCount();  // Start timing
 //#endif
 	//std::vector<cv::Mat> gradImgs;
 	float maxMagVal = 0;
@@ -1159,13 +1159,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	cm::getNormalizedMagnitudeImages(inPartImg, outCrsMagImg, &maxMagVal);
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 幅值梯度图: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Magnitude gradient image: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 
-		// 计算凸包
+		// Compute convex hull
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	std::vector<cv::Point> detectRange;
 	int beginX = inBegPixelX, beginY = inBegPixelY, endX = inEndPixelX, endY = inEndPixelY;
@@ -1178,12 +1178,12 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	//}
 //#if showTimeFlag
 //    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-//    std::cout << " - - - 计算凸包: " << tmpTime << "ms" << std::endl;  // 计时结束
+//    std::cout << " - - - Compute convex hull: " << tmpTime << "ms" << std::endl;  // End timing
 //#endif
 
-	// 计算幅值
+	// Compute magnitude
 //#if showTimeFlag
-//    time_start = cv::getTickCount();  // 计时开始
+//    time_start = cv::getTickCount();  // Start timing
 //#endif
 	cv::Point2f imgCenter((outCrsMagImg.cols - 1) * 0.5, (outCrsMagImg.rows - 1) * 0.5);
 
@@ -1245,13 +1245,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	}
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 计算幅值: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Compute magnitude: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 
-		// 幅值筛选
+		// Magnitude filtering
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const float maxScoreM = *std::max_element(vecMaxScoreM.begin(), vecMaxScoreM.end());
 	//std::vector<std::vector<matchPoint>> matchPoints(templateNum);
@@ -1293,13 +1293,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	}
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 幅值筛选: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Magnitude filtering: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 		/*
-		// 计算梯度
+		// Compute gradient
 	#if showTimeFlag
-		time_start = cv::getTickCount();  // 计时开始
+		time_start = cv::getTickCount();  // Start timing
 	#endif
 		std::vector<float> vecMaxScoreG(templateNum, 0);
 	# ifdef _DEBUG
@@ -1320,13 +1320,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	# endif
 	#if showTimeFlag
 		tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-		std::cout << " - - - 计算梯度: " << tmpTime << "ms" << std::endl;  // 计时结束
+		std::cout << " - - - Compute gradient: " << tmpTime << "ms" << std::endl;  // End timing
 	#endif
 
 
-		// 梯度筛选
+		// Gradient filtering
 	#if showTimeFlag
-		time_start = cv::getTickCount();  // 计时开始
+		time_start = cv::getTickCount();  // Start timing
 	#endif
 		const float maxScoreG = *std::max_element(vecMaxScoreG.begin(), vecMaxScoreG.end());
 		std::vector<std::vector<matchPoint>> gradientPoints(templateNum);
@@ -1349,13 +1349,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 		*/
 
 		//std::vector<matchPoint> gradientSelectPoints;
-		//// 计算总元素数量
+		//// Compute total element count
 		//size_t totalSize = 0;
 		//for (const auto& v : matchPoints) totalSize += v.size();  // gradientPoints
 		//gradientSelectPoints.reserve(totalSize);
 		//
 		//
-		//// 展平
+		//// Flatten
 		//for (const auto& v : matchPoints)  // gradientPoints
 		//    gradientSelectPoints.insert(gradientSelectPoints.end(), v.begin(), v.end());
 
@@ -1364,13 +1364,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 	//# endif
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 梯度筛选: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Gradient filtering: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 
-		// 相同位置筛选
+		// Same-position filtering
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	std::vector<matchPoint> posPoints;
 	std::vector<matchPoint> tempPoints;
@@ -1407,13 +1407,13 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 # endif
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 相同位置筛选: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Same-position filtering: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 
-		// 最大数量筛选
+		// Maximum-count filtering
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const int maxSelAngNum = 2;  // round(useNum * 0.5);
 	const int sglAngPosNum = 1;
@@ -1442,7 +1442,7 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesCoarse(const cv::Point2f& in
 # endif
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 最大数量筛选: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Maximum-count filtering: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 	for (int i = 0; i < selectPoints.size(); i++) {
@@ -1461,9 +1461,9 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 	//    double time_start, tmpTime;
 	//#endif
 
-		// 截取匹配区域
+		// Crop matching region
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const float totalX = inTotalSize.width * powf(0.5, inPyrLvl) + 8;
 	const float totalY = inTotalSize.height * powf(0.5, inPyrLvl) + 8;
@@ -1489,12 +1489,12 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 	cv::GaussianBlur(inPartImg(cropRect), cropImg, cv::Size(3, 3), 0);
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 截取匹配区域: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Crop matching region: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 计算梯度幅值图
+		// Compute gradient magnitude image
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//# endif
 	cv::Mat magImg;
 	std::vector<cv::Mat> gradImgs;
@@ -1504,12 +1504,12 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 	cm::getNormalizedGrayImage(cropImg, grayImg);
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 梯度幅值图: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Gradient magnitude image: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 将匹配中心转换至当前坐标系下
+		// Convert the match center to the current coordinate system
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	std::vector<cv::Point> vecMatchCenter(inOffsets.begin(), inOffsets.end());
 	for (int i = 0; i < vecMatchCenter.size(); ++i) {
@@ -1541,12 +1541,12 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 	}
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 匹配位置转换: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Match position conversion: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 计算相似度
+		// Compute similarity
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	std::vector<std::vector<matchPoint>> vecMatRes(inRotTpls.size());
 	std::vector<float> vecMaxScoreM(inRotTpls.size(), 0);
@@ -1585,12 +1585,12 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 # endif
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 相似度计算: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Similarity computation: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 结果导出
+		// Export results
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const float maxM = *std::max_element(vecMaxScoreM.begin(), vecMaxScoreM.end());
 	const float maxG = *std::max_element(vecMaxScoreG.begin(), vecMaxScoreG.end());
@@ -1631,7 +1631,7 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesNormal(const cv::Size2f& inT
 	outAngle = inBegAng + vecMatRes[maxPtNo][maxPosNo].angle * inStepAng;
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 结果导出: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Export results: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 	return answer;
@@ -1644,9 +1644,9 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesPrecise(const cv::Size2f& in
 	//    double time_start, tmpTime;
 	//#endif
 
-		// 截取匹配区域
+		// Crop matching region
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const float totalX = inTotalSize.width * 1.1 * powf(0.5, inPyrLvl) + 10;
 	const float totalY = inTotalSize.height * 1.1 * powf(0.5, inPyrLvl) + 10;
@@ -1668,24 +1668,24 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesPrecise(const cv::Size2f& in
 	cv::GaussianBlur(inPartImg(cropRect), outCropImg, cv::Size(3, 3), 0);
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 截取匹配区域: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Crop matching region: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 计算梯度幅值图
+		// Compute gradient magnitude image
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	outCropGradImgs.clear();
 	cm::getNormalizedGradientAndMagnitudeImages(outCropImg, outCropGradImgs, outCropMagImg, true, &outMaxMagVal);
 	outLeftTop = cv::Point(cropRect.x, cropRect.y);
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 梯度幅值图: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Gradient magnitude image: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
-		// 将匹配中心转换至当前坐标系下
+		// Convert the match center to the current coordinate system
 	//#if showTimeFlag
-	//    time_start = cv::getTickCount();  // 计时开始
+	//    time_start = cv::getTickCount();  // Start timing
 	//#endif
 	const cv::Point2f matchCenter(imgCenter.x + inOffset.x * powf(0.5, inPyrLvl) - cropRect.x, imgCenter.y + inOffset.y * powf(0.5, inPyrLvl) - cropRect.y);
 	const float beginAngle = inAngle - inAngleRange;
@@ -1725,7 +1725,7 @@ AnswerType CTemplatePartGroup::MatchRotatedTemplatesPrecise(const cv::Size2f& in
 	}
 	//#if showTimeFlag
 	//    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	//    std::cout << " - - - 相似度计算: " << tmpTime << "ms" << std::endl;  // 计时结束
+	//    std::cout << " - - - Similarity computation: " << tmpTime << "ms" << std::endl;  // End timing
 	//#endif
 
 	outOffset = cv::Point2f((bestMatchPoint.x - imgCenter.x + cropRect.x) * std::pow(2, inPyrLvl), (bestMatchPoint.y - imgCenter.y + cropRect.y) * std::pow(2, inPyrLvl));
@@ -1742,9 +1742,9 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 	double time_start, tmpTime;
 #endif
 
-	// 计算下采样图
+	// Compute downsampled image
 #if showTimeFlag
-	time_start = cv::getTickCount();  // 计时开始
+	time_start = cv::getTickCount();  // Start timing
 #endif
 	const int pyramidNum = *std::max_element(inPyramidLevels.begin(), inPyramidLevels.end());
 	std::vector<cv::Mat> pyrImgs(pyramidNum + 1);
@@ -1757,12 +1757,12 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 	}
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - - 下采样: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - - 下采样: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-    // 粗匹配
+    // Coarse matching
 #if showTimeFlag
-	time_start = cv::getTickCount();  // 计时开始
+	time_start = cv::getTickCount();  // Start timing
 #endif
 	int step = 0;
 	const int pyramidLevel0 = inPyramidLevels[step];
@@ -1771,7 +1771,7 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 	const float beginAngle0 = inBeginAngle + inAngleRange;
 	const float endAngle0 = inEndAngle - inAngleRange;
 	const int maxPosNum = 2;
-	const int maxNum = 6; // 特征点数
+	const int maxNum = 6; // Feature point count
 	float rectDiaLen0 = 0.;
 	GetShapeDiagonalLength(cv::Size2f(inTotalSize.width * pow(0.5, pyramidLevel0), inTotalSize.height * pow(0.5, pyramidLevel0)), rectDiaLen0);
 	int margin0 = floorf(std::min(inTotalSize.width * pow(0.5, pyramidLevel0), inTotalSize.height * pow(0.5, pyramidLevel0)) * 0.5);
@@ -1788,12 +1788,12 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 #endif
 #if showTimeFlag
 	tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	std::cout << " - - 粗匹配: " << tmpTime << "ms" << std::endl;  // 计时结束
+	std::cout << " - - 粗匹配: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-	// 普通匹配
+	// Normal matching
 #if showTimeFlag
-	time_start = cv::getTickCount();  // 计时开始
+	time_start = cv::getTickCount();  // Start timing
 #endif
 	++step;
 	const int pyramidLevel1 = inPyramidLevels[step];
@@ -1811,12 +1811,12 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 #endif
 #if showTimeFlag
 	tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	std::cout << " - - 普通匹配: " << tmpTime << "ms" << std::endl;  // 计时结束
+	std::cout << " - - 普通匹配: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-	// 精匹配
+	// Fine matching
 	#if showTimeFlag
-	    time_start = cv::getTickCount();  // 计时开始
+	    time_start = cv::getTickCount();  // Start timing
 	#endif
 	++step;
 	const int pyramidLevel2 = inPyramidLevels[step];
@@ -1834,7 +1834,7 @@ AnswerType CTemplatePartGroup::PartDetect(const cv::Point2f& inScale, const cv::
 #endif
 	#if showTimeFlag
 	    tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	    std::cout << " - - 精匹配: " << tmpTime << "ms" << std::endl;  // 计时结束
+	    std::cout << " - - 精匹配: " << tmpTime << "ms" << std::endl;  // End timing
 	#endif
 
 	outOffset = offset2;
@@ -1985,10 +1985,10 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 #endif
 
 #if showTimeFlag
-	time_start = cv::getTickCount();  // 计时开始
+	time_start = cv::getTickCount();  // Start timing
 #endif
 
-	// 获取粗略结果模板
+	// Get rough result template
 	const cv::Point2f cmpCtr = inSrcImgCtr + inOffset - cv::Point2f(inLeftTop);
 	std::vector<cv::Mat> tmpRotTpl;
 	GetRotatedShapeTemplate(inSrcTpl, tmpRotTpl, inAngle);
@@ -1996,12 +1996,12 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 	std::vector<cv::Mat> corseTpl;
 	GetTranslatedShapeTemplate(tmpRotTpl, corseTpl, cmpCtr);
 
-	// 获取对应点
+	// Get corresponding points
 	const int ipW = 4;
 	cv::Mat magRes;
 	cm::getInterpolationMagnitudeMap(inCropMagImg, corseTpl[0], corseTpl[1], corseTpl[2], corseTpl[3], ipW, magRes);
 
-	// 筛选拟合区域
+	// Filter fitting region
 	cv::Mat selMagRes;
 	std::vector<cv::Mat> selTpl;
 	std::vector<cv::Mat> selRectTpl;
@@ -2021,12 +2021,12 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 			vecPt.push_back(cv::Point2f(i - ipW, selMagRes.ptr<float>(i)[colNo]));
 		}
 
-		// 三次样条插值方案 开始
+		// Cubic spline interpolation scheme start
 		CubicSpline csCurve;
 		csCurve.build(vecPt);
 		const cv::Point2d tmpMaxPt = csCurve.findSplineMaxXY();
 		const float delta = tmpMaxPt.x;
-		// 三次样条插值方案 结束
+		// Cubic spline interpolation scheme end
 
 		deltaMat.ptr<float>(0)[colNo] = delta;
 # ifdef _DEBUG
@@ -2048,7 +2048,7 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 		resGY.ptr<float>()[colNo] = inCropGradImgs[1].ptr<float>(tmpY)[tmpX];
 	}
 
-	// 删除异常点
+	// Remove outliers
 	std::vector<cv::Mat> vecDistMes;
 	//DelOutliers(deltaMat, { selRectTpl[0], selRectTpl[1], resX, resY, resGX, resGY }, vecDistMes);
 	//if (double(vecDistMes[0].cols) < double(inSrcTpl[0].cols) * 0.50) {
@@ -2056,14 +2056,14 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 	//}
 	vecDistMes = { selRectTpl[0], selRectTpl[1], resX, resY, resGX, resGY };
 
-	/* 最小二乘 */
-	// 初始参数猜测
+	/* Least squares */
+	// Initial parameter guess
 	Eigen::VectorXd initial_params(3);
 	initial_params << cmpCtr.x, cmpCtr.y, inAngle;
 
-	// 旧实现
+	// Old implementation
 	/*
-	// 生成测试数据
+	// Generate test data
 	std::vector<Eigen::VectorXd> inputs;
 	std::vector<double> outputs(resX.cols, 0);
 	for (int colNo = 0; colNo < resX.cols; ++colNo) {
@@ -2078,25 +2078,25 @@ AnswerType CTemplatePartGroup::GetPrecisePosition(const cv::Point2f& inSrcImgCtr
 		inputs.push_back(input);
 	}
 
-	// 创建优化器
+	// Create optimizer
 	LMOptimizer optimizer(distanceFunction);
 
-	// 设置优化参数
+	// Set optimization parameters
 	optimizer.setLambda(0.1);
 	optimizer.setLambdaFactor(2.0);
 	optimizer.setMaxIterations(30);
 	optimizer.setTolerance(1e-6);
 
-	// 执行优化
+	// Run optimization
 	VectorXd optimized_params = optimizer.optimize(inputs, outputs, initial_params);
 	*/
 
-	// 新实现
+	// New implementation
 	Eigen::VectorXd optimized_params = distanceFitFix(vecDistMes, initial_params, inScaleFactor);
 
 	cv::Point2f outPreOffset(optimized_params[0] - cmpCtr.x, optimized_params[1] - cmpCtr.y);
 	float outPreAngle = optimized_params[2] - inAngle;
-	// 结果输出
+	// Output results
 	if (answer.first == ALGErrCode::IMG_SUCCESS &&
 		abs(outPreAngle) < 3 &&
 		abs(outPreOffset.x) < 5 &&

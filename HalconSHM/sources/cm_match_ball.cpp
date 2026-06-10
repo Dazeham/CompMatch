@@ -19,7 +19,7 @@ CTemplateShapeBall::CTemplateShapeBall(float inScaleX, float inScaleY) : CTempla
 AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCompPtr) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	/***   获取参数   ***/
+	/***   Get parameters   ***/
 	const float meanScale = (mScaleX + mScaleY) * 0.5;
 	mTotalX = inCompPtr->GetCommonData().GetComponentLenth() / meanScale;
 	mTotalY = inCompPtr->GetCommonData().GetComponentWidth() / meanScale;
@@ -47,8 +47,8 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 		mLack(cv::Rect(lack.start_col - 1, lack.start_row - 1, lack.last_col - lack.start_col + 1, lack.last_row - lack.start_row + 1)).setTo(0);
 	}
 
-	/***   绘制模板   ***/
-	// 计算模板尺寸
+	/***   Draw template   ***/
+	// Compute template size
 	const int maxSize = ceil(max((mNumX - 1) * mPitchX + 2 * mAvgR, (mNumY - 1) * mPitchY + 2 * mAvgR));
 	mTplSize = cv::Size(maxSize + mBorWidth, maxSize + mBorWidth);
 	mTplCtr = cv::Point2f((mTplSize.width - 1) * 0.5, (mTplSize.height - 1) * 0.5);
@@ -59,7 +59,7 @@ AnswerType CTemplateShapeBall::GenerateTemplate(std::shared_ptr<Component> inCom
 	HalconCpp::HObject ballSrcTpl;
 	GetBallSourceTemplate(ballSrcTpl, mAvgR);
 
-	// 创建Shape模型
+	// Create Shape model
 	CreateShapeModelXld(ballSrcTpl,
 		mPyramidLevels,
 		DegToRad(mBeginAngle),

@@ -31,14 +31,14 @@ namespace cm {
 		double GetComponentWidth();
 
 	private:
-		double length_;									//元件长
-		double width_;									//元件宽	
+		double length_;									//Component length
+		double width_;									//Component width
 	};
 
 	enum class ConfigurationBasicType {
-		MOLD = 0,			    // 模具
-		LEAD_GROUP = 1,         // 引脚组
-		BALL_GROUP = 2,			// 球组
+		MOLD = 0,			    // Mold
+		LEAD_GROUP = 1,         // Lead group
+		BALL_GROUP = 2,			// Ball group
 	};
 
 	class AbstractConfigurationBasic {
@@ -93,25 +93,25 @@ namespace cm {
 		ConfigTypeMap GetConfigurationMapCopy();
 		std::shared_ptr<AbstractConfigurationBasic> GetOneAbstractConfigurationBasic(ConfigurationBasicType configuration_basic_type);
 	private:
-		ComponentType component_type_;					//元件类型
-		CommonData common_data_;						//元件公共数据
-		ConfigTypeMap configuration_basic_list_;		//元件数据
+		ComponentType component_type_;					//Component type
+		CommonData common_data_;						//Component common data
+		ConfigTypeMap configuration_basic_list_;		//Component data
 	};
 
 	class MoldParam {
 	public:
 		struct ShapeParam {
-			bool shape = 0;			//形状		0-长方形 1-圆形
-			double length = 0;		//特征点长
-			double width = 0;		//特征点宽 
-			double center_x = 0;	//中心X
-			double center_y = 0;	//中心Y
+			bool shape = 0;			//Shape		0-rectangle 1-circle
+			double length = 0;		//Feature point length
+			double width = 0;		//Feature point width
+			double center_x = 0;	//Center X
+			double center_y = 0;	//Center Y
 		};
 
 		MoldParam();
 		~MoldParam();
 
-		// 形状尺寸参数
+		// Shape size parameters
 		void SetShapeParam(ShapeParam shape_param);
 		ShapeParam GetShapeParam();
 
@@ -151,15 +151,15 @@ namespace cm {
 	class CutLeadParam {
 	public:
 		struct ACutLeadParam {
-			int group = 0;       // 缺失类型
-			int number = 0;      // 引脚个数
-			int position = 0;    // 起始位置
+			int group = 0;       // Missing type
+			int number = 0;      // Lead count
+			int position = 0;    // Start position
 		};
 
 		CutLeadParam();
 		~CutLeadParam();
 
-		// 单个缺失引脚参数
+		// Single missing-lead parameters
 		ACutLeadParam GetACutLeadParam(int index);
 		std::vector<ACutLeadParam> GetAllCutLeadParam();
 		void UpdateACutLeadParam(int index, ACutLeadParam a_cut_lead_param);
@@ -172,23 +172,23 @@ namespace cm {
 	class LeadGroupParam {
 	public:
 		struct ShapeParam {
-			int number;					//引脚数量
-			double pitch;				//引脚间距
-			double width;				//引脚宽度
-			double length;				//引脚长度
-			double angle;				//角度
-			double center_x;			//中心X
-			double center_y;			//中心Y	
+			int number;					//Lead count
+			double pitch;				//Lead pitch
+			double width;				//Lead width
+			double length;				//Lead length
+			double angle;				//Angle
+			double center_x;			//Center X
+			double center_y;			//Center Y
 		};
 
 		LeadGroupParam();
 		~LeadGroupParam();
 
-		// 形状尺寸参数
+		// Shape size parameters
 		void SetShapeParam(ShapeParam shape_param);
 		ShapeParam GetShapeParam();
 
-		// 缺失引脚参数
+		// Missing-lead parameters
 		bool ExistCutLead();
 		void SetCutLeadParam(CutLeadParam cut_lead_param);
 		CutLeadParam GetCutLeadParam();
@@ -229,10 +229,10 @@ namespace cm {
 	class LackBallParam {
 	public:
 		struct LackParam {
-			int start_row = 0;	//始行
-			int start_col = 0;	//始列
-			int last_row = 0;	//末行
-			int last_col = 0;	//末列
+			int start_row = 0;	//Start row
+			int start_col = 0;	//Start column
+			int last_row = 0;	//End row
+			int last_col = 0;	//End column
 
 			LackParam() {}
 			LackParam(int s_r, int s_c, int l_r, int l_c) :start_row(s_r), start_col(s_c), last_row(l_r), last_col(l_c) {}
@@ -254,24 +254,24 @@ namespace cm {
 	class BallGroupParam {
 	public:
 		struct ShapeParam {
-			double angle;				//角度
-			double center_x;			//中心X
-			double center_y;			//中心Y
-			int number_x;				//球数X
-			int number_y;				//球数Y
-			double pitch_x;				//球间距X
-			double pitch_y;				//球间距Y
-			double diameter;			//球直径
+			double angle;				//Angle
+			double center_x;			//Center X
+			double center_y;			//Center Y
+			int number_x;				//Ball count X
+			int number_y;				//Ball count Y
+			double pitch_x;				//Ball pitch X
+			double pitch_y;				//Ball pitch Y
+			double diameter;			//Ball diameter
 		};
 
 		BallGroupParam();
 		~BallGroupParam();
 
-		// 形状尺寸参数
+		// Shape size parameters
 		void SetShapeParam(ShapeParam shape_param);
 		ShapeParam GetShapeParam();
 
-		// 界面设置参数接口
+		// UI setting parameter interface
 		void SetNumberX(int number_x);
 		void SetNumberY(int number_y);
 		void SetAngle(double angle);
@@ -281,7 +281,7 @@ namespace cm {
 		void SetPitchY(double pitch_y);
 		void SetDiameter(double diameter);
 
-		// 缺失焊球参数
+		// Missing solder-ball parameters
 		bool ExistLackBall();
 		void SetLackBallParam(LackBallParam lack_ball_param);
 		LackBallParam GetLackBallParam();
@@ -321,7 +321,7 @@ namespace cm {
 	};
 
 
-	// 读取json文件
+	// Read json file
 	inline std::shared_ptr<Component> GetComponentPtr(const std::string& inJsonPath) {
 		std::ifstream fileJson(inJsonPath);
 

@@ -8,13 +8,13 @@
 using namespace cm;
 
 CTemplateShapeLead::CTemplateShapeLead(float inScaleX, float inScaleY) : CTemplatePartGroup(inScaleX, inScaleY) {
-	// 元件参数
+	// Component parameters
 	mTotalX = 0;
 	mTotalY = 0;
 	mMoldX = 0;
 	mMoldY = 0;
 
-	// 匹配参数
+	// Matching parameters
 	mStepNum = 0;
 	mAngleRange = 0;
 }
@@ -22,11 +22,11 @@ CTemplateShapeLead::CTemplateShapeLead(float inScaleX, float inScaleY) : CTempla
 AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCompPtr) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	// 获取刻度
+	// Get scale
 	const double minScale = std::min(mScaleX, mScaleY);
 	mScaleFactor = cv::Point2d(mScaleX < mScaleY ? 1 : minScale / mScaleX, mScaleY < mScaleX ? 1 : minScale / mScaleY);
 
-	// 获取引脚元件参数
+	// Get lead component parameters
 	mTotalX = inCompPtr->GetCommonData().GetComponentLenth() / minScale;
 	mTotalY = inCompPtr->GetCommonData().GetComponentWidth() / minScale;
 
@@ -40,14 +40,14 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	mMoldX = moldParam.GetShapeParam().length / minScale;
 	mMoldY = moldParam.GetShapeParam().width / minScale;
 
-	mVecLeadNum.resize(4);	           //引脚数目
+	mVecLeadNum.resize(4);	           //Lead count
 	std::fill(mVecLeadNum.begin(), mVecLeadNum.end(), 0);
-	mVecLeadPitch.resize(4);	           //引脚间距
-	mVecLeadLength.resize(4);           //引脚长度
-	mVecLeadWidth.resize(4);	           //引脚宽度
-	mVecCenterX.resize(4);              //引脚组中心x
-	mVecCenterY.resize(4);              //引脚组中心y
-	mVecCutParam.resize(4);             // 缺失引脚
+	mVecLeadPitch.resize(4);	           //Lead pitch
+	mVecLeadLength.resize(4);           //Lead length
+	mVecLeadWidth.resize(4);	           //Lead width
+	mVecCenterX.resize(4);              //Lead-group center x
+	mVecCenterY.resize(4);              //Lead-group center y
+	mVecCutParam.resize(4);             // Missing leads
 
 	for (int i = 0; i < pLead->ParamCount(); ++i) {
 		LeadGroupParam leadParam = pLead->GetParam(i);
@@ -82,7 +82,7 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 		mVecCutParam[idx] = cutParam;
 	}
 
-	// 绘制源模板 无缩放 无旋转 模板超限保护
+	// Draw source template without scaling or rotation, with template bounds protection
 	std::vector<cv::Mat> leadSrcTpl;
 	answer = GetLeadSourceTemplate(leadSrcTpl, mVecLeadWidth, mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY, 2, true, 0);
 	if (answer.first != ALGErrCode::IMG_SUCCESS) return answer;
@@ -90,7 +90,7 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	float baseSplStep = 1;
 	GetBaseSampleStep(leadSrcTpl, baseSplStep);
 
-	// 设置匹配参数
+	// Set matching parameters
 	mStepNum = 3;
 	/*float minWidth = 0.;
 	for (int i = 0; i < mVecLeadWidth.size(); i++) {
@@ -135,13 +135,13 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	GetStepAngles(cv::Size2d(mTotalX, mTotalY), mBeginAngle, mEndAngle, mPyramidLevels, mStepAngles);
 	mAngleRange = mStepAngles[0];
 
-	// 绘制引脚元件正模板
+	// Draw the lead component upright template
 	mLeadStepTemplates.resize(mStepNum);
 	for (int stepNo = 0; stepNo < mStepNum; ++stepNo) {
 		GetLeadSourceTemplate(mLeadStepTemplates[stepNo], mVecLeadWidth, mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY, mSampleSteps[stepNo], stepNo == (mStepNum - 1), mPyramidLevels[stepNo]);
 	}
 
-	// 严格限制模板规模
+	// Strictly limit template size
 	GetStrictSampleShapeTemplates(mLeadStepTemplates, mLeadStepTemplates);
 
 # ifdef _DEBUG
@@ -150,14 +150,14 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 	}
 # endif
 
-	// 绘制旋转模板
+	// Draw rotated template
 	GetRotatedShapeTemplates(mLeadStepTemplates[0], mLeadRotTemplatesCoarse, mBeginAngle + mAngleRange, mEndAngle - mAngleRange, mStepAngles[0]);
 	GetScaleShapeTemplates(mLeadRotTemplatesCoarse, mScaleFactor);
 	GetRotatedShapeTemplates(mLeadStepTemplates[1], mLeadRotTemplates, mBeginAngle, mEndAngle, mStepAngles[1]);
 	GetScaleShapeTemplates(mLeadRotTemplates, mScaleFactor);
 
 
-	// 绘制多尺寸模板
+	// Draw multi-size templates
 	std::vector<float> vecRatio = { 1.0 };
 	mLeadMultiScaleTemplates.resize(vecRatio.size());
 	std::vector<std::vector<double>> vecLeadWidthR(vecRatio.size());
@@ -169,7 +169,7 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 		GetLeadSourceTemplate(mLeadMultiScaleTemplates[i], vecLeadWidthR[i], mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY, mSampleSteps[2], true, mPyramidLevels[2]);
 	}
 
-//	// 绘制单个引脚模板用于引脚结果检查
+//	// Draw a single-lead template for lead result checking
 //	GetSingleLeadSourceTemplate(mPinTemplates, mVecLeadWidth, mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY, 1, true, 0);
 //	GetScaleShapeTemplates(mPinTemplates, mScaleFactor);
 //
@@ -185,10 +185,10 @@ AnswerType CTemplateShapeLead::GenerateTemplate(std::shared_ptr<Component> inCom
 AnswerType CTemplateShapeLead::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-	// 截图
+	// Crop image
 	mPartImg = inSrcImg;
 
-	// 匹配
+	// Matching
 	cv::Point2f offset;
 	float angle = 0.;
 	float score = 0.;
@@ -200,15 +200,15 @@ AnswerType CTemplateShapeLead::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 	answer = PartDetect(cv::Point2f(mScaleX, mScaleY), mPartImg, mLeadStepTemplates, mLeadRotTemplatesCoarse, mLeadRotTemplates, mLeadMultiScaleTemplates, mPyramidLevels, mStepPixels, mMargins, mBeginAngle, mEndAngle, mAngleRange, mStepAngles, mSobelSizes, cv::Size2f(float(mTotalX), float(mTotalY)), cv::Size2f(float(mMoldX), float(mMoldY)), mStepNum, offset, angle, score, crsMagImg, mCropImg, cropGradImgs, mCropMagImg, maxMagVal, mLeftTop, mScaleFactor);
 	if (answer.first != ALGErrCode::IMG_SUCCESS) return answer;
 
-	// 箱形元件额外精度模块
+	// Extra precision module for box components
 #if showTimeFlag
-	double time_start = cv::getTickCount();  // 计时开始
+	double time_start = cv::getTickCount();  // Start timing
 #endif
 	mSrcImgCtr = cv::Point2f((mPartImg.size().width - 1) * 0.5, (mPartImg.size().height - 1) * 0.5);
 	mCropImgCtr = cv::Point2f((mCropImg.cols - 1) * 0.5, (mCropImg.rows - 1) * 0.5);
 	const cv::Point2f inScale(mScaleX, mScaleY);
 	mSclFac = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
-	// 亚像素方法 开始
+	// Subpixel method start
 	///*
 	answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mLeadMultiScaleTemplates[0], cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
 	if (answer.first == ALGErrCode::IMG_SUCCESS) {
@@ -227,13 +227,13 @@ AnswerType CTemplateShapeLead::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 		answer = IMG_SUCCESS_ANS().SetErrCode();
 	}
 	//*/
-	// 亚像素方法 结束
+	// Subpixel method end
 #if showTimeFlag
 	double tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-	std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // 计时结束
+	std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-	// 结果导出
+	// Export results
 	outOffset = offset;
 	outAngle = angle;
 	outScore = 50 + score * 0.5;
@@ -271,7 +271,7 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	cv::Point2f imgCenter((showImg.cols - 1) * 0.5, (showImg.rows - 1) * 0.5);
 	cv::Point2f offset(imgCenter.x + inOffset.x * powf(0.5, inPyrLvl - inMinPyrLvl), imgCenter.y + inOffset.y * powf(0.5, inPyrLvl - inMinPyrLvl));
 
-	// 保存SVG
+	// Save SVG
 	cv::Mat magImg;
 	std::vector<cv::Mat> gradImgs;
 	cm::getNormalizedGradientAndMagnitudeImages(showImg, gradImgs, magImg, true);
@@ -285,9 +285,9 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	cv::Point2f imgOfs((inSrcImg.cols - roiImg.cols) * 0.5, (inSrcImg.rows - roiImg.rows) * 0.5);
 	SVGTool st(inPath, roiImg);
 
-	// 显示点
-	//st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // 原点
-	//for (int i = 0; i < rotTpl[0].cols; i++) {  // 梯度模板
+	// Show points
+	//st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // Origin
+	//for (int i = 0; i < rotTpl[0].cols; i++) {  // Gradient template
 	//    float row = rotTpl[1].ptr<float>()[i] + offset.y;
 	//    float col = rotTpl[0].ptr<float>()[i] + offset.x;
 	//    if (row < 0 || row >= showImg.rows || col < 0 || col >= showImg.cols) {
@@ -297,7 +297,7 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//    float radius = 0.6f;
 	//    st.drawCircle(centerPt - imgOfs + cv::Point2f(0.5, 0.5), radius, "#C44DFF");
 	//}
-	//if (rotTpl.size() == 6) {  // 灰度模板
+	//if (rotTpl.size() == 6) {  // Grayscale template
 	//	if (rotTpl[4].cols > 0) {
 	//		for (int i = 0; i < rotTpl[4].cols; i++) {
 	//			float row = rotTpl[5].ptr<float>()[i] + offset.y;
@@ -312,7 +312,7 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	//	}
 	//}
 
-	// 显示轮廓线
+	// Show contour lines
 	std::vector<SVGItem> vecLeadSrcTpl;
 	GetLeadSourceItem(vecLeadSrcTpl, mVecLeadWidth, mVecLeadLength, mVecLeadNum, mVecLeadPitch, mVecCutParam, mVecCenterX, mVecCenterY);
 	GetRotatedItems(vecLeadSrcTpl, vecLeadSrcTpl, inAngle);
@@ -331,7 +331,7 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	    st.drawLine(cv::Point(showImg.cols-1, 1), cv::Point(1, showImg.rows-1), 2, "red");
 	}
 
-	//// 显示分数
+	//// Show scores
 	//int fontSize = showImg.rows * 0.1;
 	//st.drawText(cv::Point2f(1, fontSize), "red", std::to_string(fontSize) + "px", "Time: " + std::to_string(inTime) + " ms");
 	//st.drawText(cv::Point2f(1, showImg.rows-1), "red", std::to_string(fontSize) + "px", "Score: " + std::to_string(score));
@@ -341,7 +341,7 @@ AnswerType CTemplateShapeLead::SaveResult(const cv::Mat& inSrcImg, const cv::Poi
 	return answer;
 }
 
-// SVG轮廓
+// SVG contour
 AnswerType CTemplateShapeLead::GetLeadItem(const cv::Size2f inLeadSize, SVGItem& outLeadTpl) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -433,7 +433,7 @@ AnswerType CTemplateShapeLead::GetLeadSourceItem(std::vector<SVGItem>& outLeadCo
 	return answer;
 }
 
-// 模板绘制
+// Template drawing
 AnswerType CTemplateShapeLead::GetLeadTemplate(const cv::Size2f inLeadSize, std::vector<cv::Mat>& outLeadTpl, const bool& inSingleSideFlag, const bool& inPreciseFlag, const float& inSplStep) {
 	AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -457,33 +457,33 @@ AnswerType CTemplateShapeLead::GetLeadTemplate(const cv::Size2f inLeadSize, std:
 	for (int ptNo = 0; ptNo < ptNum; ++ptNo) {
 		distance = ptNo * splStep;
 
-		if (distance < tLeadLength - corRad) {  // 左
+		if (distance < tLeadLength - corRad) {  // left
 			pX[ptNo] = (-0.5 * tLeadWidth);
 			pY[ptNo] = (tLeadLength)-(distance);
 			pGX[ptNo] = 1;
 			pGY[ptNo] = 0;
 		}
-		else if (distance < tLeadLength - corRad + 0.5 * CV_PI * corRad) {  // 左上
+		else if (distance < tLeadLength - corRad + 0.5 * CV_PI * corRad) {  // upper left
 			angle = (distance - (tLeadLength - corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.;
 			pX[ptNo] = (-0.5 * inLeadSize.width + corRad) - (corRad * cosf(angle));
 			pY[ptNo] = (corRad)-(corRad * sinf(angle));
 			pGX[ptNo] = cosf(angle);
 			pGY[ptNo] = sinf(angle);
 		}
-		else if (distance < tLeadWidth + tLeadLength - 3 * corRad + 0.5 * CV_PI * corRad) {  // 上
+		else if (distance < tLeadWidth + tLeadLength - 3 * corRad + 0.5 * CV_PI * corRad) {  // top
 			pX[ptNo] = (-0.5 * tLeadWidth + corRad) + (distance - (tLeadLength - corRad + 0.5 * CV_PI * corRad));
 			pY[ptNo] = (0);
 			pGX[ptNo] = 0;
 			pGY[ptNo] = 1;
 		}
-		else if (distance < tLeadWidth + tLeadLength - 3 * corRad + CV_PI * corRad) {  // 右上
+		else if (distance < tLeadWidth + tLeadLength - 3 * corRad + CV_PI * corRad) {  // upper right
 			angle = (distance - (tLeadWidth + tLeadLength - 3 * corRad + 0.5 * CV_PI * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.;
 			pX[ptNo] = (0.5 * tLeadWidth - corRad) + (corRad * sinf(angle));
 			pY[ptNo] = (corRad)-(corRad * cosf(angle));
 			pGX[ptNo] = -sinf(angle);
 			pGY[ptNo] = cosf(angle);
 		}
-		else {  // 右
+		else {  // right
 			pX[ptNo] = (0.5 * inLeadSize.width);
 			pY[ptNo] = (corRad)+(distance - (tLeadWidth + tLeadLength - 3 * corRad + CV_PI * corRad));
 			pGX[ptNo] = -1;
@@ -541,31 +541,31 @@ AnswerType CTemplateShapeLead::GetLeadTemplateS(const cv::Size2f inLeadSize, std
 	for (int ptNo = 0; ptNo < ptNum; ++ptNo) {
 		distance = ptNo * splStep;
 
-		if (distance < tLeadLength - 2 * corRad) {  // 左
+		if (distance < tLeadLength - 2 * corRad) {  // left
 			pX[ptNo] = (-0.5 * tLeadWidth);
 			pY[ptNo] = (tLeadLength - corRad) - (distance);
 			pGX[ptNo] = 1;
 			pGY[ptNo] = 0;
 		}
-		else if (distance < tLeadWidth + tLeadLength - 4 * corRad) {  // 上
+		else if (distance < tLeadWidth + tLeadLength - 4 * corRad) {  // top
 			pX[ptNo] = (-0.5 * tLeadWidth + corRad) + (distance - (tLeadLength - 2 * corRad));
 			pY[ptNo] = (0);
 			pGX[ptNo] = 0;
 			pGY[ptNo] = 1;
 		}
-		//else if (distance < tLeadWidth + tLeadLength * 2 - 6 * corRad) {  // 右
+		//else if (distance < tLeadWidth + tLeadLength * 2 - 6 * corRad) {  // right
 		//	pX[ptNo] = (0.5 * inLeadSize.width);
 		//	pY[ptNo] = (corRad)+(distance - (tLeadWidth + tLeadLength - 4 * corRad));
 		//	pGX[ptNo] = -1;
 		//	pGY[ptNo] = 0;
 		//}
-		//else {  // 下
+		//else {  // bottom
 		//	pX[ptNo] = (0.5 * tLeadWidth - corRad) - (distance - (tLeadWidth + tLeadLength * 2 - 6 * corRad));
 		//	pY[ptNo] = tLeadLength;
 		//	pGX[ptNo] = 0;
 		//	pGY[ptNo] = -1;
 		//}
-		else {  // 右
+		else {  // right
 			pX[ptNo] = (0.5 * inLeadSize.width);
 			pY[ptNo] = (corRad)+(distance - (tLeadWidth + tLeadLength - 4 * corRad));
 			pGX[ptNo] = -1;
@@ -620,25 +620,25 @@ AnswerType CTemplateShapeLead::GetLeadTemplateX(const cv::Size2f inLeadSize, std
 	for (int ptNo = 0; ptNo < ptNum; ++ptNo) {
 		distance = ptNo * splStep;
 
-		if (distance < tLeadLength) {  // 左
+		if (distance < tLeadLength) {  // left
 			pX[ptNo] = (-0.5 * tLeadWidth);
 			pY[ptNo] = (tLeadLength)-(distance);
 			pGX[ptNo] = 1;
 			pGY[ptNo] = 0;
 		}
-		else if (distance < tLeadLength + tLeadWidth) {  // 上
+		else if (distance < tLeadLength + tLeadWidth) {  // top
 			pX[ptNo] = (- 0.5 * inLeadSize.width) + (distance - tLeadLength);
 			pY[ptNo] = 0;
 			pGX[ptNo] = 0;
 			pGY[ptNo] = 1;
 		}
-		else if (distance < 2 * tLeadLength + tLeadWidth) {  // 右
+		else if (distance < 2 * tLeadLength + tLeadWidth) {  // right
 			pX[ptNo] = 0.5 * inLeadSize.width;
 			pY[ptNo] = 0 + (distance - (tLeadLength + tLeadWidth));
 			pGX[ptNo] = -1;
 			pGY[ptNo] = 0;
 		}
-		else {  // 下
+		else {  // bottom
 			pX[ptNo] = (0.5 * inLeadSize.width) - (distance - (2 * tLeadLength + tLeadWidth));
 			pY[ptNo] = tLeadLength;
 			pGX[ptNo] = -1;
@@ -706,7 +706,7 @@ AnswerType CTemplateShapeLead::GetLeadTemplateFix(const cv::Size2f inLeadSize, s
 		pinRatio = 1.0;
 	}
 
-	// 左侧
+	// Left side
 	const float leftLeadHeight = leadHeight * pinRatio;
 	const float leftSplLen = leftLeadHeight / leftPtNum;
 	const float leftBeginY = leftLeadHeight - 0.5 * leftSplLen;
@@ -717,7 +717,7 @@ AnswerType CTemplateShapeLead::GetLeadTemplateFix(const cv::Size2f inLeadSize, s
 		pGY[i] = 0;
 	}
 
-	// 上侧
+	// Top side
 	const float upSplLen = leadWidth / upPtNum;
 	const float upBeginX = -0.5 * leadWidth + 0.5 * upSplLen;
 	for (int i = 0; i < upPtNum; ++i) {
@@ -727,7 +727,7 @@ AnswerType CTemplateShapeLead::GetLeadTemplateFix(const cv::Size2f inLeadSize, s
 		pGY[i + leftPtNum] = 1;
 	}
 
-	// 右侧
+	// Right side
 	const float rightLeadHeight = leadHeight * pinRatio;
 	const float rightSplLen = rightLeadHeight / rightPtNum;
 	const float rightBeginY = 0.5 * rightSplLen;

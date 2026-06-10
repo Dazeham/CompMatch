@@ -10,7 +10,7 @@
 
 
 namespace cm {
-//////*****************    三次样条插值    ******************//////
+//////*****************    Cubic spline interpolation    ******************//////
     struct CubicSpline {
         std::vector<double> a, b, c, d, x;
         void build(const std::vector<cv::Point2f>& points) {
@@ -84,14 +84,14 @@ namespace cm {
                 double ci = c[i];
                 double di = d[i];
 
-                // ----------- 1. 检查区间两端 -----------
+                // ----------- 1. Check both ends of the interval -----------
                 double y0 = interpolate(x0);
                 if (y0 > ymax) { ymax = y0; xmax = x0; }
 
                 double y1 = interpolate(x1);
                 if (y1 > ymax) { ymax = y1; xmax = x1; }
 
-                // ----------- 2. 求 S'(x)=0 的内部点 -----------
+                // ----------- 2. Find interior points where S'(x)=0 -----------
                 // S'(x) = b + 2c dx + 3d dx^2 = 0
                 double A = 3.0 * di;
                 double B = 2.0 * ci;
@@ -127,7 +127,7 @@ namespace cm {
 
 
 
-//////*****************    非对称高斯    ******************//////
+//////*****************    Asymmetric Gaussian    ******************//////
     inline double asymmetricGaussianFunction(double x, const Eigen::VectorXd& params) {
         double term = 0;
         if (x <= params(1)) {
@@ -209,7 +209,7 @@ namespace cm {
     }
 
 
-//////*****************    平滑非对称    ******************//////
+//////*****************    Smooth asymmetry    ******************//////
     inline double sigmoid(double x) {
         return 1.0 / (1.0 + std::exp(-x));
     }
@@ -278,7 +278,7 @@ namespace cm {
     }
 
 
-//////*****************    距离    ******************//////
+//////*****************    Distance    ******************//////
     inline double distanceFunction(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];
@@ -388,7 +388,7 @@ namespace cm {
         return params;
     }
 
-//////*****************    距离修复    ******************//////
+//////*****************    Distance repair    ******************//////
     inline double distanceFunctionFix(const Eigen::VectorXd& input, const Eigen::VectorXd& params, const cv::Point2f& inScaleFactor) {
         // parameter
         const double deltaX = params[0];

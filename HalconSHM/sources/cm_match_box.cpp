@@ -11,13 +11,13 @@ CTemplateShapeBoxType::CTemplateShapeBoxType(float inScaleX, float inScaleY) : C
 AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> para_part) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-    /***   获取参数   ***/
+    /***   Get parameters   ***/
     const float meanScale = (mScaleX + mScaleY) * 0.5;
     double mTotalX = para_part->GetCommonData().GetComponentLenth() / meanScale;
     double mTotalY = para_part->GetCommonData().GetComponentWidth() / meanScale;
 
-    /***   绘制模板   ***/
-    // 计算模板尺寸
+    /***   Draw template   ***/
+    // Compute template size
     const int maxSize = ceil(max(mTotalX, mTotalY));
     mTplSize = cv::Size(maxSize + mBorWidth * 2, maxSize + mBorWidth * 2);
     mTplCtr = cv::Point2f((mTplSize.width - 1) * 0.5, (mTplSize.height - 1) * 0.5);
@@ -25,11 +25,11 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> pa
     HalconCpp::HImage Image;
     Image.GenImageConst("byte", mTplSize.width, mTplSize.height);
 
-	// 创建矩形轮廓
+	// Create rectangle contour
     HalconCpp::HObject Rect;
 	GenRectangle2ContourXld(&Rect, 0, 0, 0, mTotalX * 0.5, mTotalY * 0.5);
 
-    // 创建Shape模型
+    // Create Shape model
 	CreateShapeModelXld(Rect,
 		mPyramidLevels,
         DegToRad(mBeginAngle), 

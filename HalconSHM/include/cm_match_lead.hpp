@@ -25,16 +25,16 @@ namespace cm {
 		double mTotalY;
 		double mMoldX;
 		double mMoldY;
-		std::vector<int> mVecLeadNum;	             //引脚数目
-		std::vector<double> mVecLeadPitch;	         //引脚间距
-		std::vector<double> mVecLeadLength;          //引脚长度
-		std::vector<double> mVecLeadWidth;	         //引脚宽度
-		std::vector<double> mVecCenterX;             //引脚组中心x
-		std::vector<double> mVecCenterY;             //引脚组中心y
-		std::vector<std::vector<int>> mVecCutParam;  // 缺失引脚
+		std::vector<int> mVecLeadNum;	             //Lead count
+		std::vector<double> mVecLeadPitch;	         //Lead pitch
+		std::vector<double> mVecLeadLength;          //Lead length
+		std::vector<double> mVecLeadWidth;	         //Lead width
+		std::vector<double> mVecCenterX;             //Lead-group center x
+		std::vector<double> mVecCenterY;             //Lead-group center y
+		std::vector<std::vector<int>> mVecCutParam;  // Missing leads
 
-		cv::Size mTplSize;                           // 模板尺寸
-		cv::Point2f mTplCtr;                         // 模板中心
+		cv::Size mTplSize;                           // Template size
+		cv::Point2f mTplCtr;                         // Template center
 	};
 }
 

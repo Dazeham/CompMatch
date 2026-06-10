@@ -58,7 +58,7 @@ for folderPath in vecFolderPath:
         bboxes = pred.bboxes.cpu().numpy()
         best_idx = np.argmax(scores)
         best_box = bboxes[best_idx]  # (5,)
-        best_conf = scores[best_idx]  # 最高置信度
+        best_conf = scores[best_idx]  # Highest confidence
 
         if best_conf > 0.5:
             ang = best_box[4] / np.pi * 180.

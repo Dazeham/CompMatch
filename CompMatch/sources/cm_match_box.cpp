@@ -10,17 +10,17 @@
 
 using namespace cm;
 
-//////*****************    形状模板匹配    ******************//////
+//////*****************    Shape-template matching    ******************//////
 CTemplateShapeBoxType::CTemplateShapeBoxType(float inScaleX, float inScaleY) : CTemplatePartGroup(inScaleX, inScaleY) {
-    // 元件参数
+    // Component parameters
     mTotalX = 0;
     mTotalY = 0;
 
-    // 匹配参数
+    // Matching parameters
     mStepNum = 0;
     mAngleRange = 3;
 
-    // 额外匹配参数
+    // Extra matching parameters
     mLineModOffser = 3;
     mLineModAngle = 3;
     mLineUseRatio = 0.9;
@@ -32,20 +32,20 @@ CTemplateShapeBoxType::CTemplateShapeBoxType(float inScaleX, float inScaleY) : C
 AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> inCompPtr) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-    // 获取刻度
+    // Get scale
     //mScaleX = inScale.x;
     //mScaleY = inScale.y;
     const double minScale = std::min(mScaleX, mScaleY);
     mScaleFactor = cv::Point2d(mScaleX < mScaleY ? 1 : minScale / mScaleX, mScaleY < mScaleX ? 1 : minScale / mScaleY);
 
-    // 获取箱形元件尺寸
+    // Get box component dimensions
     mTotalX = inCompPtr->GetCommonData().GetComponentLenth() / minScale;
     mTotalY = inCompPtr->GetCommonData().GetComponentWidth() / minScale;
-    mVecLeadNum.resize(4, 0);	            //引脚数目
-    mVecLeadLength.resize(4, 0);            //引脚长度
-    mVecLeadWidth.resize(4, 0);	            //引脚宽度
-    mVecCenterX.resize(4, 0);               //引脚组中心x
-    mVecCenterY.resize(4, 0);               //引脚组中心y
+    mVecLeadNum.resize(4, 0);	            //Lead count
+    mVecLeadLength.resize(4, 0);            //Lead length
+    mVecLeadWidth.resize(4, 0);	            //Lead width
+    mVecCenterX.resize(4, 0);               //Lead-group center x
+    mVecCenterY.resize(4, 0);               //Lead-group center y
 
     std::shared_ptr<cm::LeadGroupBasic> pLead = std::dynamic_pointer_cast<cm::LeadGroupBasic>(inCompPtr->GetOneAbstractConfigurationBasic(cm::ConfigurationBasicType::LEAD_GROUP));
     if (pLead != nullptr) {
@@ -70,7 +70,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
         }
     }
 
-    // 获取箱形元件姿态
+    // Get box component pose
     const int leadSideNum = std::accumulate(mVecLeadNum.begin(), mVecLeadNum.end(), 0);
     if (leadSideNum == 2 &&
         mVecLeadNum[0] == 1 && mVecLeadLength[0] > 0 && mVecLeadWidth[0] > 0 &&
@@ -85,18 +85,18 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
     else {
     }
 
-    // 绘制源模板 无缩放 无旋转
+    // Draw source template without scaling or rotation
     float radius;
     GetRectCornerRadius(cv::Size2f(mTotalX, mTotalY), minScale, minScale, radius);
     mVecBoxSide = std::vector<int>(4, 0);
     std::vector<cv::Mat> rectSrcTpl;
     GetRectSourceTemplateS(cv::Size2f(mTotalX, mTotalY), mVecLeadNum, mVecLeadLength, mVecLeadWidth, mVecCenterX, mVecCenterY, radius, mVecBoxSide, rectSrcTpl, 1, 0);
 
-    // 模板超限保护
+    // Template bounds protection
     float baseSplStep = 1;
     GetBaseSampleStep(rectSrcTpl, baseSplStep);
 
-    // 设置匹配参数
+    // Set matching parameters
     //const float minAngle = std::max(atan2(1, std::max(mTotalX, mTotalY) * 0.5) / CV_PI * 180 * 0.33, 0.2);
 
     mStepNum = 3;
@@ -105,7 +105,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
     //    mStepPixels = { 1, 1, 1 };
     //    mSobelSizes = { 3, 3, 3 };
     //    mSampleSteps = { baseSplStep * float(1.), baseSplStep * float(1.), baseSplStep * float(1.) };
-    //    // 额外匹配参数
+    //    // Extra matching parameters
     //    mLineModOffser = 3;
     //    mLineModAngle = 5;
     //    mLineUseRatio = 1.0;
@@ -118,7 +118,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
     //    mStepPixels = { 2, 2, 1 };
     //    mSobelSizes = { 3, 3, 3 };
     //    mSampleSteps = { baseSplStep * float(1.), baseSplStep * float(1.), baseSplStep * float(1.) };
-    //    // 额外匹配参数
+    //    // Extra matching parameters
     //    mLineModOffser = 3;
     //    mLineModAngle = 5;
     //    mLineUseRatio = 1.0;
@@ -132,7 +132,7 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
         mSobelSizes = { 3, 3, 3 };
         mMargins = { 0, 0, 0 };
         mSampleSteps = { baseSplStep * mSplItv, baseSplStep * mSplItv, baseSplStep * mSplItv };
-        // 额外匹配参数
+        // Extra matching parameters
         mLineModOffser = 3;
         mLineModAngle = 5;
         mLineUseRatio = 0.9;
@@ -147,22 +147,22 @@ AnswerType CTemplateShapeBoxType::GenerateTemplate(std::shared_ptr<Component> in
     GetStepAngles(cv::Size2d(mTotalX, mTotalY), mBeginAngle, mEndAngle, mPyramidLevels, mStepAngles);
     mAngleRange = mStepAngles[0];
 
-    // 绘制正模板
+    // Draw upright template
     mRectStepTemplates.resize(mStepNum);
     concurrency::parallel_for(0, mStepNum, [&](int stepNo) {
         GetRectSourceTemplateS(cv::Size2f(mTotalX, mTotalY), mVecLeadNum, mVecLeadLength, mVecLeadWidth, mVecCenterX, mVecCenterY, radius, mVecBoxSide, mRectStepTemplates[stepNo], mSampleSteps[stepNo], mPyramidLevels[stepNo]);
         });
 
-    // 严格限制模板规模
+    // Strictly limit template size
     GetStrictSampleShapeTemplates(mRectStepTemplates, mRectStepTemplates);
 
-    // 绘制旋转模板
+    // Draw rotated template
     GetRotatedShapeTemplates(mRectStepTemplates[0], mRectRotTemplatesCoarse, mBeginAngle + mAngleRange, mEndAngle - mAngleRange, mStepAngles[0]);
     GetScaleShapeTemplates(mRectRotTemplatesCoarse, mScaleFactor);
     GetRotatedShapeTemplates(mRectStepTemplates[1], mRectRotTemplates, mBeginAngle, mEndAngle, mStepAngles[1]);
     GetScaleShapeTemplates(mRectRotTemplates, mScaleFactor);
 
-    // 绘制多尺寸模板
+    // Draw multi-size templates
     float tolerance;
     GetRectSizeTolerance(cv::Size2f(mTotalX, mTotalY), minScale, minScale, tolerance);
     tolerance *= 2. / 3.;
@@ -184,22 +184,22 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
 #if showTimeFlag
-    std::cout << "||===  计时开始  ===||" << std::endl;  // 计时结束
+    std::cout << "||===  计时开始  ===||" << std::endl;  // End timing
     double time_start, tmpTime;
 #endif
 
-    // 判断是否已绘制模板
+    // Check whether the template has been drawn
     if (mRectMultiScaleTemplates.size() == 0) {
         answer = IMG_PARAM_ERROR_ANS().SetErrCode(IMG_PARAM_ERROR_ANS::ANS2::TemplateNumberError);
         return answer;
     }
 
-    // 截图
+    // Crop image
     mPartImg = inSrcImg;
 
-    // 匹配
+    // Matching
 #if showTimeFlag
-    time_start = cv::getTickCount();  // 计时开始
+    time_start = cv::getTickCount();  // Start timing
 #endif
     cv::Point2f offset;
     float angle = 0.;
@@ -213,19 +213,19 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     }
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - 匹配: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - 匹配: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
 
-    // 箱形元件额外精度模块
+    // Extra precision module for box components
 #if showTimeFlag
-    time_start = cv::getTickCount();  // 计时开始
+    time_start = cv::getTickCount();  // Start timing
 #endif
     mSrcImgCtr = cv::Point2f((mPartImg.size().width - 1) * 0.5, (mPartImg.size().height - 1) * 0.5);
     mCropImgCtr = cv::Point2f((mCropImg.cols - 1) * 0.5, (mCropImg.rows - 1) * 0.5);
     const cv::Point2f inScale(mScaleX, mScaleY);
     mScaleFactorInverse = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
-    // 亚像素方法 开始
+    // Subpixel method start
     ///*
     answer = GetPreciseRectPosition(cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle, mVecBoxSide, mLineModOffser, mLineModAngle, mLineUseRatio, mLineRowBegRatio, mLineMagTresh, mLineDistTresh);
     //answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mRectTemplatesRect, cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
@@ -245,13 +245,13 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
         answer = IMG_SUCCESS_ANS().SetErrCode();
     }
     //*/
-    // 亚像素方法 结束
+    // Subpixel method end
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - 精度补偿: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
-    // 结果输出
+    // Output results
     outOffset = offset;
     outAngle = angle;
     outScore = 50 + score * 0.5;
@@ -289,7 +289,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     cv::Point2f imgCenter((showImg.cols - 1) * 0.5, (showImg.rows - 1) * 0.5);
     cv::Point2f offset(imgCenter.x + inOffset.x * powf(0.5, inPyrLvl - inMinPyrLvl), imgCenter.y + inOffset.y * powf(0.5, inPyrLvl - inMinPyrLvl));
 
-    //// 梯度模板
+    //// Gradient template
     //for (int i = 0; i < rotTpl[0].cols; i++) {
     //    int row = cvRound(rotTpl[1].ptr<float>()[i] + offset.y);
     //    int col = cvRound(rotTpl[0].ptr<float>()[i] + offset.x);
@@ -302,7 +302,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     //    pixel[2] = 0;
     //}
 
-    //// 灰度模板
+    //// Grayscale template
     //if (inSrcTpl.size() == 6) {
     //    for (int i = 0; i < rotTpl[4].cols; i++) {
     //        int row = cvRound(rotTpl[5].ptr<float>()[i] + offset.y);
@@ -317,7 +317,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     //    }
     //}
 
-    // 保存SVG
+    // Save SVG
     cv::Mat magImg;
     std::vector<cv::Mat> gradImgs;
     cm::getNormalizedGradientAndMagnitudeImages(showImg, gradImgs, magImg, true);
@@ -331,9 +331,9 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     cv::Point2f imgOfs((inSrcImg.cols - roiImg.cols) * 0.5, (inSrcImg.rows - roiImg.rows) * 0.5);
     SVGTool st(inPath, roiImg);
 
-    // 显示点
-    //st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // 原点
-    //for (int i = 0; i < rotTpl[0].cols; i++) {  // 梯度模板
+    // Show points
+    //st.drawCircle(cv::Point2f(0.5, 0.5), 0.5, "red");  // Origin
+    //for (int i = 0; i < rotTpl[0].cols; i++) {  // Gradient template
     //    float row = rotTpl[1].ptr<float>()[i] + offset.y;
     //    float col = rotTpl[0].ptr<float>()[i] + offset.x;
     //    if (row < 0 || row >= showImg.rows || col < 0 || col >= showImg.cols) {
@@ -343,7 +343,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     //    float radius = 0.6f;
     //    st.drawCircle(centerPt - imgOfs + cv::Point2f(0.5, 0.5), radius, "#C44DFF");
     //}
-    //if (rotTpl.size() == 6) {  // 灰度模板
+    //if (rotTpl.size() == 6) {  // Grayscale template
     //    if (rotTpl[4].cols > 0) {
     //        for (int i = 0; i < rotTpl[4].cols; i++) {
     //            float row = rotTpl[5].ptr<float>()[i] + offset.y;
@@ -358,7 +358,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     //    }
     //}
 
-    // 显示轮廓线
+    // Show contour lines
     st.drawRect(offset - imgOfs + cv::Point2f(0.5, 0.5), cv::Size2f(mTotalX, mTotalY), inAngle ,1, "red");
     float score = 0;
     if (inAnswer.first == ALGErrCode::IMG_SUCCESS) {
@@ -369,7 +369,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
         st.drawLine(cv::Point(showImg.cols-1, 1), cv::Point(1, showImg.rows-1), 2, "red");
     }
 
-    //// 显示分数
+    //// Show scores
     //int fontSize = showImg.rows * 0.1;
     //st.drawText(cv::Point2f(1, fontSize), "red", std::to_string(fontSize) + "px", "Time: " + std::to_string(inTime) + " ms");
     //st.drawText(cv::Point2f(1, showImg.rows-1), "red", std::to_string(fontSize) + "px", "Score: " + std::to_string(score));
@@ -379,7 +379,7 @@ AnswerType CTemplateShapeBoxType::SaveResult(const cv::Mat& inSrcImg, const cv::
     return answer;
 }
 
-// 模板绘制
+// Template drawing
 AnswerType CTemplateShapeBoxType::GetRectCornerRadius(const cv::Size2f& inRectSize, const double& inScaleX, const double& inScaleY, float& outRad) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -393,12 +393,12 @@ AnswerType CTemplateShapeBoxType::GetRectCornerRadius(const cv::Size2f& inRectSi
 AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRectSize, const float& inCorRad, const std::vector<int>& inVecBoxSide, std::vector<cv::Mat>& outSrcTpl, const float& inSplStep) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-    // 计算周长
+    // Compute perimeter
     const float perimeter = 2 * CV_PI * inCorRad + 2 * (inRectSize.width + inRectSize.height) - 8 * inCorRad;
     const int ptNum = floorf(perimeter / inSplStep) + 1;
     //if (ptNum < 4)
 
-    // 采样
+    // Sample
     cv::Mat tX = cv::Mat::zeros(cv::Size(1, std::floor(ptNum)), CV_32FC1);
     cv::Mat tY = cv::Mat::zeros(cv::Size(1, std::floor(ptNum)), CV_32FC1);
     cv::Mat tGX = cv::Mat::zeros(cv::Size(1, std::floor(ptNum)), CV_32FC1);
@@ -407,7 +407,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRect
         float distance = ptNo * inSplStep;
 
         if ((distance < 0.5 * CV_PI * inCorRad) && (inVecBoxSide[0] == 0 && inVecBoxSide[1] == 0)) {
-            float angle = distance / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = distance / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             tX.ptr<float>(ptNo)[0] = (-0.5 * inRectSize.width + inCorRad) - (inCorRad * cosf(angle));
             tY.ptr<float>(ptNo)[0] = (-0.5 * inRectSize.height + inCorRad) - (inCorRad * sinf(angle));
             tGX.ptr<float>(ptNo)[0] = cosf(angle);
@@ -420,7 +420,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRect
             tGY.ptr<float>(ptNo)[0] = 1;
         }
         else if ((distance < (1.0 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad)) && (inVecBoxSide[0] == 0 && inVecBoxSide[3] == 0)) {
-            float angle = (distance - (0.5 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (0.5 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             tX.ptr<float>(ptNo)[0] = (0.5 * inRectSize.width - inCorRad) + (inCorRad * sinf(angle));
             tY.ptr<float>(ptNo)[0] = (-0.5 * inRectSize.height + inCorRad) - (inCorRad * cosf(angle));
             tGX.ptr<float>(ptNo)[0] = -sinf(angle);
@@ -433,7 +433,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRect
             tGY.ptr<float>(ptNo)[0] = 0;
         }
         else if (((distance < (1.5 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad)) && (inVecBoxSide[2] == 0 && inVecBoxSide[3] == 0)) && (inVecBoxSide[2] == 0 && inVecBoxSide[3] == 0)) {
-            float angle = (distance - (1.0 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (1.0 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             tX.ptr<float>(ptNo)[0] = (0.5 * inRectSize.width - inCorRad) + (inCorRad * cosf(angle));
             tY.ptr<float>(ptNo)[0] = (0.5 * inRectSize.height - inCorRad) + (inCorRad * sinf(angle));
             tGX.ptr<float>(ptNo)[0] = -cosf(angle);
@@ -446,7 +446,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRect
             tGY.ptr<float>(ptNo)[0] = -1;
         }
         else if ((distance < (2.0 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad)) && (inVecBoxSide[1] == 0 && inVecBoxSide[2] == 0)) {
-            float angle = (distance - (1.5 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (1.5 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             tX.ptr<float>(ptNo)[0] = (-0.5 * inRectSize.width + inCorRad) - (inCorRad * sinf(angle));
             tY.ptr<float>(ptNo)[0] = (0.5 * inRectSize.height - inCorRad) + (inCorRad * cosf(angle));
             tGX.ptr<float>(ptNo)[0] = sinf(angle);
@@ -468,15 +468,15 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplate(const cv::Size2f& inRect
 AnswerType CTemplateShapeBoxType::GetRectSourceTemplateX(const cv::Size2f& inRectSize, const float& inCorRad, const std::vector<int>& inVecBoxSide, std::vector<cv::Mat>& outSrcTpl, const float& inSplStep) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-    // 计算周长
+    // Compute perimeter
     const float perimeter = 2 * CV_PI * inCorRad + 2 * (inRectSize.width + inRectSize.height) - 8 * inCorRad;
     const int ptNum = floorf(perimeter / inSplStep) + 1;
     //if (ptNum < 4)
 
-    // 删除圆角
+    // Remove rounded corners
     const std::vector<int> deleteFlag = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    // 采样
+    // Sample
     std::vector<float> vecX, vecY, vecGX, vecGY;
     for (int ptNo = 0; ptNo < ptNum; ++ptNo) {
         float distance = ptNo * inSplStep;
@@ -485,7 +485,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateX(const cv::Size2f& inRec
             distance < (0.5 * CV_PI * inCorRad) &&
             inVecBoxSide[0] == 0 && inVecBoxSide[1] == 0 && deleteFlag[0] == 0)
         {
-            float angle = distance / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = distance / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             vecX.push_back((-0.5 * inRectSize.width + inCorRad) - (inCorRad * cosf(angle)));
             vecY.push_back((-0.5 * inRectSize.height + inCorRad) - (inCorRad * sinf(angle)));
             vecGX.push_back(cosf(angle));
@@ -504,7 +504,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateX(const cv::Size2f& inRec
             distance < (1.0 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad) &&
             inVecBoxSide[0] == 0 && inVecBoxSide[3] == 0 && deleteFlag[2] == 0)
         {
-            float angle = (distance - (0.5 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (0.5 * CV_PI * inCorRad + inRectSize.width - 2 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             vecX.push_back((0.5 * inRectSize.width - inCorRad) + (inCorRad * sinf(angle)));
             vecY.push_back((-0.5 * inRectSize.height + inCorRad) - (inCorRad * cosf(angle)));
             vecGX.push_back(-sinf(angle));
@@ -523,7 +523,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateX(const cv::Size2f& inRec
             distance < (1.5 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad) &&
             inVecBoxSide[2] == 0 && inVecBoxSide[3] == 0 && deleteFlag[4] == 0)
         {
-            float angle = (distance - (1.0 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (1.0 * CV_PI * inCorRad + inRectSize.width + inRectSize.height - 4 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             vecX.push_back((0.5 * inRectSize.width - inCorRad) + (inCorRad * cosf(angle)));
             vecY.push_back((0.5 * inRectSize.height - inCorRad) + (inCorRad * sinf(angle)));
             vecGX.push_back(-cosf(angle));
@@ -542,7 +542,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateX(const cv::Size2f& inRec
             distance < (2.0 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad) &&
             inVecBoxSide[1] == 0 && inVecBoxSide[2] == 0 && deleteFlag[6] == 0)
         {
-            float angle = (distance - (1.5 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // 弧度制
+            float angle = (distance - (1.5 * CV_PI * inCorRad + 2 * inRectSize.width + inRectSize.height - 6 * inCorRad)) / (0.5 * CV_PI * inCorRad) * 90 * CV_PI / 180.; // Radians
             vecX.push_back((-0.5 * inRectSize.width + inCorRad) - (inCorRad * sinf(angle)));
             vecY.push_back((0.5 * inRectSize.height - inCorRad) + (inCorRad * cosf(angle)));
             vecGX.push_back(sinf(angle));
@@ -607,7 +607,7 @@ AnswerType CTemplateShapeBoxType::GetRectLeadTemplate(const cv::Size2f& inRectLe
     float* pGX = tGX.ptr<float>();
     float* pGY = tGY.ptr<float>();
     int idx = -1;
-    for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {  // 左
+    for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {  // left
         ++idx;
         pX[idx] = -inRectLeadSize.width * 0.5;
         pY[idx] = inRectLeadSize.height - ptNo * splStepY;
@@ -628,7 +628,7 @@ AnswerType CTemplateShapeBoxType::GetRectLeadTemplate(const cv::Size2f& inRectLe
         pGX[idx] = 1;
         pGY[idx] = 0;
     }
-    for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {  // 右
+    for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {  // right
         ++idx;
         pX[idx] = inRectLeadSize.width * 0.5;
         pY[idx] = inRectLeadSize.height - ptNo * splStepY;
@@ -649,7 +649,7 @@ AnswerType CTemplateShapeBoxType::GetRectLeadTemplate(const cv::Size2f& inRectLe
         pGX[idx] = -1;
         pGY[idx] = 0;
     }
-    for (int ptNo = 0; ptNo < ptNumX; ++ptNo) {  // 上
+    for (int ptNo = 0; ptNo < ptNumX; ++ptNo) {  // top
         ++idx;
         pX[idx] = -inRectLeadSize.width * 0.5 + inCordRad + ptNo * splStepX;
         pY[idx] = 0;
@@ -736,12 +736,12 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateR(const cv::Size2f& inRec
     const int leadNum = std::accumulate(vecLeadNum.begin(), vecLeadNum.end(), 0);
     const int ignNum = std::accumulate(inVecBoxSide.begin(), inVecBoxSide.end(), 0);
     
-    if (true) {  // 纯矩形
+    if (true) {  // Plain rectangle
         const float perimeter = 2 * (rectSize.width + rectSize.height);
         const int ptNum = floorf(perimeter / inSplStep) + 1;
         //if (ptNum < 4)
 
-        // 采样
+        // Sample
         tX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tY = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tGX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
@@ -853,12 +853,12 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
         }
     }
     else if (false) {
-        // 计算周长
+        // Compute perimeter
         const float perimeter = 2 * CV_PI * corRad + 2 * (rectSize.width + rectSize.height) - 8 * corRad;
         const int ptNum = floorf(perimeter / inSplStep) + 1;
         //if (ptNum < 4)
 
-        // 采样
+        // Sample
         tX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tY = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tGX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
@@ -867,7 +867,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
             float distance = ptNo * inSplStep;
 
             if ((distance < 0.5 * CV_PI * corRad) && (inVecBoxSide[0] == 0 && inVecBoxSide[1] == 0)) {
-                float angle = distance / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // 弧度制
+                float angle = distance / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // Radians
                 tX.ptr<float>()[ptNo] = (-0.5 * rectSize.width + corRad) - (corRad * cosf(angle));
                 tY.ptr<float>()[ptNo] = (-0.5 * rectSize.height + corRad) - (corRad * sinf(angle));
                 tGX.ptr<float>()[ptNo] = cosf(angle);
@@ -880,7 +880,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 tGY.ptr<float>()[ptNo] = 1;
             }
             else if ((distance < (1.0 * CV_PI * corRad + rectSize.width - 2 * corRad)) && (inVecBoxSide[0] == 0 && inVecBoxSide[3] == 0)) {
-                float angle = (distance - (0.5 * CV_PI * corRad + rectSize.width - 2 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // 弧度制
+                float angle = (distance - (0.5 * CV_PI * corRad + rectSize.width - 2 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // Radians
                 tX.ptr<float>()[ptNo] = (0.5 * rectSize.width - corRad) + (corRad * sinf(angle));
                 tY.ptr<float>()[ptNo] = (-0.5 * rectSize.height + corRad) - (corRad * cosf(angle));
                 tGX.ptr<float>()[ptNo] = -sinf(angle);
@@ -893,7 +893,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 tGY.ptr<float>()[ptNo] = 0;
             }
             else if (((distance < (1.5 * CV_PI * corRad + rectSize.width + rectSize.height - 4 * corRad)) && (inVecBoxSide[2] == 0 && inVecBoxSide[3] == 0)) && (inVecBoxSide[2] == 0 && inVecBoxSide[3] == 0)) {
-                float angle = (distance - (1.0 * CV_PI * corRad + rectSize.width + rectSize.height - 4 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // 弧度制
+                float angle = (distance - (1.0 * CV_PI * corRad + rectSize.width + rectSize.height - 4 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // Radians
                 tX.ptr<float>()[ptNo] = (0.5 * rectSize.width - corRad) + (corRad * cosf(angle));
                 tY.ptr<float>()[ptNo] = (0.5 * rectSize.height - corRad) + (corRad * sinf(angle));
                 tGX.ptr<float>()[ptNo] = -cosf(angle);
@@ -906,7 +906,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 tGY.ptr<float>()[ptNo] = -1;
             }
             else if ((distance < (2.0 * CV_PI * corRad + 2 * rectSize.width + rectSize.height - 6 * corRad)) && (inVecBoxSide[1] == 0 && inVecBoxSide[2] == 0)) {
-                float angle = (distance - (1.5 * CV_PI * corRad + 2 * rectSize.width + rectSize.height - 6 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // 弧度制
+                float angle = (distance - (1.5 * CV_PI * corRad + 2 * rectSize.width + rectSize.height - 6 * corRad)) / (0.5 * CV_PI * corRad) * 90 * CV_PI / 180.; // Radians
                 tX.ptr<float>()[ptNo] = (-0.5 * rectSize.width + corRad) - (corRad * sinf(angle));
                 tY.ptr<float>()[ptNo] = (0.5 * rectSize.height - corRad) + (corRad * cosf(angle));
                 tGX.ptr<float>()[ptNo] = sinf(angle);
@@ -927,7 +927,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
         const int ptNum = floorf(perimeter / inSplStep) + 1;
         //if (ptNum < 4)
 
-        // 采样
+        // Sample
         tX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tY = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
         tGX = cv::Mat::zeros(cv::Size(std::floor(ptNum), 1), CV_32FC1);
@@ -961,7 +961,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
             }
         }
     }
-    else {  // 防偏斜模板
+    else {  // Skew-resistant template
         const int ptNumX = std::max(int((rectSize.width - 2 * corRad) / inSplStep + 1), 2);
         const float splStepX = (rectSize.width - 2 * corRad) / float(ptNumX - 1);
         const int ptNumY = std::max(int((rectSize.height - 2 * corRad) / inSplStep + 1), 2);
@@ -998,7 +998,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
         float* pGX = tGX.ptr<float>();
         float* pGY = tGY.ptr<float>();
         int idx = -1;
-        if (inVecBoxSide[0] == 0) {  // 上
+        if (inVecBoxSide[0] == 0) {  // top
             for (int ptNo = 0; ptNo < ptNumX; ++ptNo) {
                 ++idx;
                 pX[idx] = -0.5 * rectSize.width + corRad + ptNo * splStepX;
@@ -1037,7 +1037,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 }
             }
         }
-        if (inVecBoxSide[2] == 0) {  // 下
+        if (inVecBoxSide[2] == 0) {  // bottom
             for (int ptNo = 0; ptNo < ptNumX; ++ptNo) {
                 ++idx;
                 pX[idx] = -0.5 * rectSize.width + corRad + ptNo * splStepX;
@@ -1076,7 +1076,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 }
             }
         }
-        if (inVecBoxSide[3] == 0) {  // 左
+        if (inVecBoxSide[3] == 0) {  // left
             for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {
                 ++idx;
                 pX[idx] = -0.5 * rectSize.width;
@@ -1115,7 +1115,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
                 }
             }
         }
-        if (inVecBoxSide[1] == 0) {  // 右
+        if (inVecBoxSide[1] == 0) {  // right
             for (int ptNo = 0; ptNo < ptNumY; ++ptNo) {
                 ++idx;
                 pX[idx] = 0.5 * rectSize.width;
@@ -1156,7 +1156,7 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
         }
     }
 
-    // 绘制灰度模板
+    // Draw grayscale template
     if (true) {
         const float stepRatio = 1;
         const float useRatio = 0.9;
@@ -1170,42 +1170,42 @@ AnswerType CTemplateShapeBoxType::GetRectSourceTemplateS(const cv::Size2f& inRec
         float* pVX = tVX.ptr<float>();
         float* pVY = tVY.ptr<float>();
         int iv = -1;
-        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // 左上
+        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // upper left
             ++iv;
             pVX[iv] = -(rectSize.width * 0.5 - 1);
             pVY[iv] = -(rectSize.height * useRatio * 0.5 - ptNo * splStepVY);
         }
-        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // 左下
+        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // lower left
             ++iv;
             pVX[iv] = -(rectSize.width * 0.5 - 1);
             pVY[iv] = +(rectSize.height * useRatio * 0.5 - ptNo * splStepVY);
         }
-        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // 右上
+        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // upper right
             ++iv;
             pVX[iv] = +(rectSize.width * 0.5 - 1);
             pVY[iv] = -(rectSize.height * useRatio * 0.5 - ptNo * splStepVY);
         }
-        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // 右下
+        for (int ptNo = 0; ptNo < ptNumVY; ++ptNo) {  // lower right
             ++iv;
             pVX[iv] = +(rectSize.width * 0.5 - 1);
             pVY[iv] = +(rectSize.height * useRatio * 0.5 - ptNo * splStepVY);
         }
-        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // 上左
+        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // upper left segment
             ++iv;
             pVX[iv] = -(rectSize.width * useRatio * 0.5 - ptNo * splStepVX);
             pVY[iv] = -(rectSize.height * 0.5 - 1);
         }
-        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // 上右
+        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // upper right segment
             ++iv;
             pVX[iv] = +(rectSize.width * useRatio * 0.5 - ptNo * splStepVX);
             pVY[iv] = -(rectSize.height * 0.5 - 1);
         }
-        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // 下左
+        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // lower left segment
             ++iv;
             pVX[iv] = -(rectSize.width * useRatio * 0.5 - ptNo * splStepVX);
             pVY[iv] = +(rectSize.height * 0.5 - 1);
         }
-        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // 下右
+        for (int ptNo = 0; ptNo < ptNumVX; ++ptNo) {  // lower right segment
             ++iv;
             pVX[iv] = +(rectSize.width * useRatio * 0.5 - ptNo * splStepVX);
             pVY[iv] = +(rectSize.height * 0.5 - 1);
@@ -1237,7 +1237,7 @@ AnswerType CTemplateShapeBoxType::GetRectSizeTolerance(const cv::Size2f& inRectS
     return answer;
 }
 
-// 额外匹配
+// Extra matching
 AnswerType GetScalingInvTransMatrix(const cv::Point2d& inSclFac, const cv::Point2d& inRotCtr, const double& inRotAng, const cv::Point2d& inResCtr, cv::Mat& outInvMat) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
@@ -1253,7 +1253,7 @@ AnswerType GetScalingInvTransMatrix(const cv::Point2d& inSclFac, const cv::Point
     return answer;
 }
 
-// 亚像素
+// Subpixel
 inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f>& outVecPt, std::vector<float>& outVecVal, const float& inLineUseRatio, const float& inLineRowBegRatio, const float& inLineMagTresh = 0.15) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
     if (inSrcImg.type() != CV_32FC1) {
@@ -1290,7 +1290,7 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         return answer;
     }
 
-    // 添加精确置信度
+    // Add precise confidence
     const int halfNum = ceil(inSrcImg.rows * 0.5);
     const float begRatio = inLineRowBegRatio;
     const float ratio = (1 - begRatio) / (halfNum - 1);
@@ -1351,21 +1351,21 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         float tmpMaxY = 0;
         float tmpMaxX = vecPt[begIdx].x;
 
-        //// 高斯拟合开始
+        //// Gaussian fitting start
         //GaussianParams initial_guess(1, vecPt[maxIdx].x, 1);
         //GaussianParams fitted_params = fit_gaussian(vecPt, initial_guess);
         //tmpMaxX = fitted_params.m;
         //tmpMaxY = gaussian_function(tmpMaxX, fitted_params);
-        //// 高斯拟合结束
+        //// Gaussian fitting end
 
-        //// 完整拟合开始
+        //// Full fitting start
         //FunctionParams initial_guess(1.0, vecPt[maxIdx].x, 1.0, 1.0, 1.0, 1.0);
         //FunctionParams fitted_params = fit_function(vecPt, initial_guess);
         //tmpMaxX = fitted_params.m;
         //tmpMaxY = model_function(tmpMaxX, fitted_params);
-        //// 完整拟合结束
+        //// Full fitting end
 
-        ////// 非对称高斯拟合开始 AG
+        ////// Asymmetric Gaussian fitting start AG
         ////FunctionParams initial_guess(1, vecPt[maxIdx].x, 1, 1);
         ////FunctionParams fitted_params = fit_function(vecPt, initial_guess);
         ////tmpMaxX = fitted_params.m;
@@ -1379,9 +1379,9 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         ////float p2 = fitted_params(2);
         ////float p3 = fitted_params(3);
         //tmpMaxY = asymmetricGaussianFunction(tmpMaxX, fitted_params);
-        ////// 非对称高斯拟合结束
+        ////// Asymmetric Gaussian fitting end
 
-        ////// 平滑非对称拟合开始 SA
+        ////// Smooth asymmetric fitting start SA
         ////FunctionParams initial_guess(1, vecPt[maxIdx].x, 1, 1);
         ////FunctionParams fitted_params = fit_function(vecPt, initial_guess);
         ////tmpMaxX = fitted_params.m;
@@ -1395,9 +1395,9 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         ////float p2 = fitted_params(2);
         ////float p3 = fitted_params(3);
         //tmpMaxY = smoothAsymmetricFunction(tmpMaxX, fitted_params);
-        ////// 平滑非对称拟合结束
+        ////// Smooth asymmetric fitting end
         
-        // 三次样条插值方案开始 IP
+        // Cubic spline interpolation scheme start IP
         CubicSpline csCurve;
         csCurve.build(vecPt);
         //for (float iX = vecPt[begIdx].x; iX < vecPt[endIdx].x; iX += splIns) {
@@ -1412,7 +1412,7 @@ inline AnswerType GetMaxColValX(const cv::Mat& inSrcImg, std::vector<cv::Point2f
         cv::Point2d tmpMaxPt = csCurve.findSplineMaxXY();
         tmpMaxX = tmpMaxPt.x;
         tmpMaxY = tmpMaxPt.y;
-        // 三次样条插值方案结束
+        // Cubic spline interpolation scheme end
 
         if (tmpMaxY >= inLineMagTresh) {
             tmpVecPt.push_back(cv::Point2f(colNo, inSrcImg.rows - 1 - tmpMaxX));
@@ -1543,8 +1543,8 @@ inline AnswerType GetMagBrdPosAndAng(const cv::Mat& inMagImg, const std::vector<
 #ifdef _DEBUG
     cv::Mat showImg;
     cv::cvtColor(inMagImg, showImg, cv::COLOR_GRAY2BGR);
-    cv::Point2f pt1(0, 100); // 起点
-    cv::Point2f pt2(inMagImg.cols - 1, 300); // 终点
+    cv::Point2f pt1(0, 100); // Start point
+    cv::Point2f pt2(inMagImg.cols - 1, 300); // End point
     pt1.y = inMagImg.rows - 1 - (-line.C - line.A * pt1.x) / line.B;
     pt2.y = inMagImg.rows - 1 - (-line.C - line.A * pt2.x) / line.B;
     cv::line(showImg, pt1, pt2, cv::Scalar(0, 1, 0), 1, cv::LINE_AA);
@@ -1558,16 +1558,16 @@ inline AnswerType GetMagBrdPosAndAng(const cv::Mat& inMagImg, const std::vector<
     st.close();
 #endif // DEBUG
 
-    // 计算偏移
+    // Compute offset
     const double eps = 1e-12;
     if (std::fabs(line.B) < eps) {
-        // B = 0 表示直线是垂直的，y 无法由 x 唯一确定
+        // B = 0 means the line is vertical, so y cannot be uniquely determined from x
         answer = IMG_MATCH_FAIL_ANS().SetErrCode(IMG_MATCH_FAIL_ANS::ANS2::LineFitFail);
         return answer;
     }
     outMidY = (-line.A * (inMagImg.cols - 1) * 0.5 - line.C) / line.B;
 
-    // 计算角度
+    // Compute angle
     float tmpAng = std::atan2(line.A, -line.B) * 180. / CV_PI;
     if (abs(tmpAng) > 90) {
         tmpAng > 0 ? tmpAng -= 180 : tmpAng += 180;
@@ -1651,8 +1651,8 @@ inline AnswerType GetMagBrdPosAndAngX(const cv::Mat& inMagImg1, const cv::Mat& i
     cv::Mat showImg1, showImg2;
     cv::cvtColor(inMagImg1, showImg1, cv::COLOR_GRAY2BGR);
     cv::cvtColor(inMagImg2, showImg2, cv::COLOR_GRAY2BGR);
-    cv::Point2f pt1(0, 100); // 起点
-    cv::Point2f pt2(inMagImg1.cols - 1, 300); // 终点
+    cv::Point2f pt1(0, 100); // Start point
+    cv::Point2f pt2(inMagImg1.cols - 1, 300); // End point
     pt1.y = inMagImg1.rows - 1 - (-line.C - line.A * pt1.x) / line.B;
     pt2.y = inMagImg1.rows - 1 - (-line.C - line.A * pt2.x) / line.B;
     cv::line(showImg1, pt1, pt2, cv::Scalar(0, 1, 0), 1, cv::LINE_AA);
@@ -1673,7 +1673,7 @@ inline AnswerType GetMagBrdPosAndAngX(const cv::Mat& inMagImg1, const cv::Mat& i
     st2.close();
 #endif
 
-    // 计算角度
+    // Compute angle
     float tmpAng = std::atan2(line.A, -line.B) * 180. / CV_PI;
     if (abs(tmpAng) > 90) {
         tmpAng > 0 ? tmpAng -= 180 : tmpAng += 180;
@@ -1701,15 +1701,15 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
 #endif
 
 #if showTimeFlag
-    time_start = cv::getTickCount();  // 计时开始
+    time_start = cv::getTickCount();  // Start timing
 #endif
-    // 偏差坐标系转换
+    // Deviation coordinate-system conversion
     cv::Point2f cmpCtr = mSrcImgCtr + inOffset - cv::Point2f(inLeftTop);
 
-    // 图像转正
+    // Straighten image
     cv::Mat ctrMagImg;
     cm::getCenterScalingAndRotationTransformationImage(inCropMagImg, mScaleFactorInverse, cmpCtr, inAngle, ctrMagImg, inCropMagImg.size(), mCropImgCtr);
-    if (std::min(inTotalSize.width, inTotalSize.height) > 60) {  // 大于0603的元件禁用此模块
+    if (std::min(inTotalSize.width, inTotalSize.height) > 60) {  // Disable this module for components larger than 0603
         answer = IMG_MATCH_FAIL_ANS().SetErrCode(IMG_MATCH_FAIL_ANS::ANS2::BoxPreciseModuleFail);
         return answer;
     }
@@ -1718,14 +1718,14 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
     cv::Point2f affPreOffset = mCropImgCtr;
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - - 图像转正: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - - 图像转正: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
 
 #if showTimeFlag
-    time_start = cv::getTickCount();  // 计时开始
+    time_start = cv::getTickCount();  // Start timing
 #endif
-    // 四向 截图、边缘点提取、拟合、偏移和角度计算
+    // Four-direction crop, edge point extraction, fitting, offset and angle computation
     const float cropRatio = 0.88;
     const int tbW = inTotalSize.width * cropRatio;
     const int tbH = std::min(inTotalSize.width, inTotalSize.height) * 0.5;
@@ -1736,19 +1736,19 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
     const cv::Point2f lrCtr((lrW - 1) * 0.5, (lrH - 1) * 0.5);
     const cv::Size lrSize(lrW, lrH);
     std::vector<cv::Mat> vecTransMat = {
-        cm::getAffineMatrix(  // 上
+        cm::getAffineMatrix(  // top
             cm::getTranslationTransformationMatrix(-mCropImgCtr + cv::Point2f(0, 0.5 * inTotalSize.height) + tbCtr)
         ),
-        cm::getAffineMatrix(  // 下
+        cm::getAffineMatrix(  // bottom
             cm::getFlipAllTransformationMatrix(tbSize) *
             cm::getTranslationTransformationMatrix(-mCropImgCtr + cv::Point2f(0, -0.5 * inTotalSize.height) + tbCtr)
         ),
-        cm::getAffineMatrix(  // 左
+        cm::getAffineMatrix(  // left
             cm::getFlipHorizontalTransformationMatrix(lrSize) *
             cm::getTranspositionTransformationMatrix() *
             cm::getTranslationTransformationMatrix(-mCropImgCtr + cv::Point2f(0.5 * inTotalSize.width, 0) + cv::Point2f(lrCtr.y, lrCtr.x))
         ),
-        cm::getAffineMatrix(  // 右
+        cm::getAffineMatrix(  // right
             cm::getFlipVerticalTransformationMatrix(lrSize) *
             cm::getTranspositionTransformationMatrix() *
             cm::getTranslationTransformationMatrix(-mCropImgCtr + cv::Point2f(-0.5 * inTotalSize.width, 0) + cv::Point2f(lrCtr.y, lrCtr.x))
@@ -1763,7 +1763,7 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
     std::vector<int> vecSkipFlag(4, 0);
     std::vector<int> vecSusFlag(4, 0);
     std::vector<int> vecInrPtNum(4, 0);
-    // 根据无效边跳过
+    // Skip according to invalid sides
     for (int i = 0; i < inVecBoxSide.size(); ++i) {
         if (inVecBoxSide[i] != 0) {
             vecSkipFlag[i] = 1;
@@ -1800,21 +1800,21 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
 # endif
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - - 四向 截图、边缘点提取、拟合、偏移和角度计算: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - - 四向 截图、边缘点提取、拟合、偏移和角度计算: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
 #if showTimeFlag
-    time_start = cv::getTickCount();  // 计时开始
+    time_start = cv::getTickCount();  // Start timing
 #endif
-    // 精确偏移计算
+    // Precise offset computation
     std::vector<int> vecSusFlagTS(2, 0);
     std::vector<float> vecPreAngle(2, 0);
     std::vector<int> vecPreInrPtNum(2, 0);
     concurrency::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
-            if (vecSusFlag[0] == 1 && vecSusFlag[1] == 1) {  // 上下
-                const bool arFlag = abs(vecBrdA[0] - vecBrdA[1]) < inLineModAngle;  // 角度检查
-                const bool wrFlag = abs(vecBrdY[0] - vecBrdY[1]) < inTotalSize.height * pow(std::sin((vecBrdA[0] + vecBrdA[1]) * 0.5 * CV_PI / 180.), 2) + std::min(inTotalSize.height * 0.2, 0.2 / std::min(inScale.x, inScale.y));  // 宽度检查
+            if (vecSusFlag[0] == 1 && vecSusFlag[1] == 1) {  // top and bottom
+                const bool arFlag = abs(vecBrdA[0] - vecBrdA[1]) < inLineModAngle;  // Angle check
+                const bool wrFlag = abs(vecBrdY[0] - vecBrdY[1]) < inTotalSize.height * pow(std::sin((vecBrdA[0] + vecBrdA[1]) * 0.5 * CV_PI / 180.), 2) + std::min(inTotalSize.height * 0.2, 0.2 / std::min(inScale.x, inScale.y));  // Width check
                 if (arFlag && wrFlag) {
                     float tbBrdY = -1;
                     float tbBrdA = 0;
@@ -1839,9 +1839,9 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
             }
         }
         else {
-            if (vecSusFlag[2] == 1 && vecSusFlag[3] == 1) {  // 左右
-                const bool arFlag = abs(vecBrdA[2] - vecBrdA[3]) < inLineModAngle;  // 角度检查
-                const bool wrFlag = abs(vecBrdY[2] - vecBrdY[3]) < inTotalSize.height * pow(std::sin((vecBrdA[2] + vecBrdA[3]) * 0.5 * CV_PI / 180.), 2) + std::min(inTotalSize.height * 0.2, 0.2 / std::min(inScale.x, inScale.y));  // 宽度检查
+            if (vecSusFlag[2] == 1 && vecSusFlag[3] == 1) {  // left and right
+                const bool arFlag = abs(vecBrdA[2] - vecBrdA[3]) < inLineModAngle;  // Angle check
+                const bool wrFlag = abs(vecBrdY[2] - vecBrdY[3]) < inTotalSize.height * pow(std::sin((vecBrdA[2] + vecBrdA[3]) * 0.5 * CV_PI / 180.), 2) + std::min(inTotalSize.height * 0.2, 0.2 / std::min(inScale.x, inScale.y));  // Width check
                 if (arFlag && wrFlag) {
                     float lrBrdY = -1;
                     float lrBrdA = 0;
@@ -1870,16 +1870,16 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
 
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());
-    std::cout << " - - 精确偏移计算: " << tmpTime << "ms" << std::endl;  // 计时结束
+    std::cout << " - - 精确偏移计算: " << tmpTime << "ms" << std::endl;  // End timing
 #endif
 
 
-    // 偏移坐标系转换
+    // Offset coordinate-system conversion
     cv::Point2f prePos(0, 0);
     GetAffinePoint(affPreOffset, invAffMat, prePos);
     cv::Point2f outPreOffset = prePos - cmpCtr;
 
-    // 角度计算
+    // Angle computation
     float outPreAngle = 0;
     float angRng = 2 * atan2(1., std::min(inTotalSize.width, inTotalSize.height)) * 180. / CV_PI;
     float acpAngRng = std::min(inLineModAngle * (float)0.5, abs(angRng));
@@ -1955,7 +1955,7 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
         }
     }
 
-    // 结果输出
+    // Output results
     if (answer.first == ALGErrCode::IMG_SUCCESS) {
         inOffset += outPreOffset;
         inAngle += outPreAngle;
@@ -1964,7 +1964,7 @@ AnswerType CTemplateShapeBoxType::GetPreciseRectPosition(const cv::Point2f& inSc
     return answer;
 }
 
-// 结果检查
+// Result checking
 inline AnswerType GetSideCropImg(const cv::Mat& inImg, cv::Mat& outImg, const float& inCropRatio = 0.1) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 

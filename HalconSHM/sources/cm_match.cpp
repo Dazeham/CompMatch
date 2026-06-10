@@ -8,7 +8,7 @@ using namespace cm;
 AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg, cv::Point2f& outOffset, float& outAngle, float& outScore) {
     AnswerType answer = IMG_SUCCESS_ANS().SetErrCode();
 
-    // 匹配
+    // Matching
     HalconCpp::HTuple row, col, ang, score, width, height;
     HalconCpp::HTuple;
     GetImageSize(inSrcImg, &width, &height);
@@ -20,7 +20,7 @@ AnswerType CTemplatePartGroup::TemplateMatch(const HalconCpp::HObject& inSrcImg,
     FindShapeModel(inSrcImg, mModelID, DegToRad(mBeginAngle), DegToRad(mEndAngle - mBeginAngle),
         0.5, 1, 0.5, method.c_str(), 0, 0.9, &row, &col, &ang, &score);
 
-    // 结果导出
+    // Export results
     std::vector<double> hwidths = cm::tupleToVector<double>(width);
     std::vector<double> hheights = cm::tupleToVector<double>(height);
     std::vector<double> hrows = cm::tupleToVector<double>(row);
@@ -67,8 +67,8 @@ AnswerType CTemplatePartGroup::GetTranslatedShapeTemplate(const HalconCpp::HObje
     HalconCpp::HTuple hHomMat2D;
     HalconCpp::HomMat2dIdentity(&hHomMat2D);
 
-    double deltaRow = static_cast<double>(inOffset.y);  // y 对应行
-    double deltaCol = static_cast<double>(inOffset.x);  // x 对应列
+    double deltaRow = static_cast<double>(inOffset.y);  // y corresponds to row
+    double deltaCol = static_cast<double>(inOffset.x);  // x corresponds to column
 
     HalconCpp::HomMat2dTranslate(hHomMat2D, deltaRow, deltaCol, &hHomMat2D);
 

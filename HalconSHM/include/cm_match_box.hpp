@@ -16,8 +16,8 @@ namespace cm {
 		double mTotalX;
 		double mTotalY;
 
-		cv::Size mTplSize;                           // 模板尺寸
-		cv::Point2f mTplCtr;                         // 模板中心
+		cv::Size mTplSize;                           // Template size
+		cv::Point2f mTplCtr;                         // Template center
 	};
 }
 

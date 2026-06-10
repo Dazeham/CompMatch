@@ -21,15 +21,15 @@ namespace cm {
 		double mTotalY;
 		double mMoldX;
 		double mMoldY;
-		int mNumX;  // X轴方向球数
-		int mNumY;  // Y轴方向球数
-		double mAvgR;  // 半径
-		double mPitchX;  // X轴方向球间距
-		double mPitchY;  // Y轴方向球间距
-		cv::Mat mLack;  // 缺失球
+		int mNumX;  // Ball count in X direction
+		int mNumY;  // Ball count in Y direction
+		double mAvgR;  // Radius
+		double mPitchX;  // Ball pitch in X direction
+		double mPitchY;  // Ball pitch in Y direction
+		cv::Mat mLack;  // Missing balls
 
-		cv::Size mTplSize;                           // 模板尺寸
-		cv::Point2f mTplCtr;                         // 模板中心
+		cv::Size mTplSize;                           // Template size
+		cv::Point2f mTplCtr;                         // Template center
 	};
 }
 

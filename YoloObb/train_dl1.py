@@ -9,5 +9,5 @@ if __name__ == '__main__':
         data="./cfg/data_dl1.yaml", 
         epochs=50, 
         imgsz=512,
-        project="./runs",           # 主输出目录
+        project="./runs",           # Main output directory
         )

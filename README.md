@@ -5,7 +5,7 @@ This repository provides the official implementation of our paper:
 **"A Fast Template Matching Method for Pose Estimation of Surface Mount Components"**
 
 ## Abstract
-Precise pose estimation of surface mount components is challenged by high PCB density, illumination variations, and parametric data storage. We propose a parametric template generator with a hybrid similarity measure to reduce translational bias. A gradient-magnitude reduction step speeds up processing, while an anti-tilt template and a subpixel precision compensation module curb rotational error. In the box-type component multi-illumination dataset experiment, the translational measurement uncertainty of our proposed algorithm reached 0.4854 pixels, and the rotational measurement uncertainty reached 0.3597°.
+Precise pose estimation of surface mount components is challenged by high PCB density, illumination variations, and parametric data storage. We propose a parametric template generator with a hybrid similarity measure to reduce translational bias. A gradient-magnitude reduction step speeds up processing, while an anti-tilt template and a subpixel precision compensation module curb rotational error. In the box-type component multi-illumination dataset experiment, the translational measurement uncertainty of our proposed algorithm reached 0.00699 pixels, and the rotational measurement uncertainty reached 0.00475°.
 
 ## Framework Architecture
 ![framework](./.files/framework.svg)
@@ -21,8 +21,9 @@ CompMatch/
 │   ├── tra/
 │   ├── rot/
 │   ├── lig_rect/
-│   ├── lig_qbc/
+│   ├── lig_qb/
 │   └── dl/
+├── ai4rs/
 ├── CalMse/
 ├── CompMatch/
 ├── HalconNCC/
@@ -35,12 +36,15 @@ CompMatch/
 The following is an introduction to each subproject in the engineering project.
 
 - Data :  
-The datasets are available at: [Google Drive](https://drive.google.com/file/d/1hpJEu9WIpvcKOeXSKEhu3e04e28PkhgC/view?usp=sharing), [Quark Drive](https://pan.quark.cn/s/3fc9a5002dd8?pwd=UZcw).  
+The datasets are available at: [Google Drive](https://drive.google.com/file/d/1LUhHO1JhwG_9HGpBrzt7qqbPQHQfFa-M/view?usp=sharing), [Quark Drive](https://pan.quark.cn/s/2c2e3d4f24e2?pwd=Qdap).  
 tra -> The dataset of 0603 box-type components used to evaluate the measurement uncertainty of translation was under fixed illumination.  
 rot -> The dataset of 0603 box-type components used to evaluate the measurement uncertainty of rotation was under fixed illumination.  
 lig_rect -> The 0603 box-type component dataset used for evaluating measurement uncertainty under varying illumination.  
-lig_qbc -> The lead and ball component dataset used for evaluating measurement uncertainty under varying illumination.  
+lig_qb -> The lead and ball component dataset used for evaluating measurement uncertainty under varying illumination.  
 dl -> The dataset of the 0603 box-type components used for neural network training was obtained under varying illumination.  
+
+- ai4rs :  
+Implement matching of SMCs using the O2-RTDETR.
 
 - CalMse :  
 A tool for calculating standard uncertainty, MAE and other metrics.
@@ -64,7 +68,7 @@ Note: The installation and usage methods for each subproject can be found in the
 
 ## Hardware Configuration of the Experimental Platform
 - Intel Core i9-14900K (Default settings)
-- DDR5 2 × 16 GB (No XMP enabled)
+- DDR5 2 × 48 GB (No XMP enabled)
 - NVMe PCIe 4.0 1 TB SSD
 
 ## Software Environment
@@ -83,3 +87,4 @@ Note: The installation and usage methods for each subproject can be found in the
 - https://www.mvtec.com/cn/products/halcon
 - https://github.com/ZhouJ6610/PoseMatch-TDCM
 - https://github.com/ultralytics/ultralytics
+- https://github.com/wokaikaixinxin/ai4rs

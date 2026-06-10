@@ -253,7 +253,7 @@ int main() {
 	
 
 	/*  Light  */
-	const std::vector<std::string> vecTask = { "lig_rect", "lig_qb", "lig_qbc"};
+	const std::vector<std::string> vecTask = { "lig_rect", "lig_qb" };
 	for (std::string taskName : vecTask) {
 		// Extracted results
 		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMesL(vecMethod.size());

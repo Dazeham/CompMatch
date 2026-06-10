@@ -226,7 +226,7 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     const cv::Point2f inScale(mScaleX, mScaleY);
     mScaleFactorInverse = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
     // 亚像素方法 开始
-    /*
+    ///*
     answer = GetPreciseRectPosition(cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle, mVecBoxSide, mLineModOffser, mLineModAngle, mLineUseRatio, mLineRowBegRatio, mLineMagTresh, mLineDistTresh);
     //answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mRectTemplatesRect, cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
     if (answer.first == ALGErrCode::IMG_SUCCESS) {
@@ -244,7 +244,7 @@ AnswerType CTemplateShapeBoxType::TemplateMatch(const cv::Mat& inSrcImg, cv::Poi
     else {
         answer = IMG_SUCCESS_ANS().SetErrCode();
     }
-    */
+    //*/
     // 亚像素方法 结束
 #if showTimeFlag
     tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());

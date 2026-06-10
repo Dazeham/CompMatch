@@ -145,7 +145,7 @@ AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 	const cv::Point2f inScale(mScaleX, mScaleY);
 	mSclFac = cv::Point2d(inScale.x < inScale.y ? 1 : inScale.x / inScale.y, inScale.y < inScale.x ? 1 : inScale.y / inScale.x);
 	// 亚像素方法 开始
-	/*
+	///*
 	answer = GetPrecisePosition(mSrcImgCtr, mScaleFactor, mBallMultiScaleTemplates[0], cv::Point2f(mScaleX, mScaleY), mPartImg.size(), mCropImg, mCropMagImg, cropGradImgs, mLeftTop, cv::Size2d(mTotalX, mTotalY), offset, angle);
 	if (answer.first == ALGErrCode::IMG_SUCCESS) {
 		std::vector<cv::Mat> tmpRotTpl;
@@ -162,7 +162,7 @@ AnswerType CTemplateShapeBall::TemplateMatch(const cv::Mat& inSrcImg, cv::Point2
 	else {
 		answer = IMG_SUCCESS_ANS().SetErrCode();
 	}
-	*/
+	//*/
 	// 亚像素方法 结束
 #if showTimeFlag
 	double tmpTime = (cv::getTickCount() - time_start) * 1000. / double(cv::getTickFrequency());

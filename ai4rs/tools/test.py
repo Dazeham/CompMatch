@@ -17,7 +17,7 @@ model = init_detector(
 
 dateRoot = "/mnt/g/data_cm/Data"
 resRoot = "/workspace/ai4rs/work_dir/test/o2_r18_cpu"
-vecTask = [dateRoot + "/tra", dateRoot + "/rot", dateRoot + "/lig_rect", dateRoot + "/lig_qb", dateRoot + "/lig_qbc"]
+vecTask = [dateRoot + "/tra", dateRoot + "/rot", dateRoot + "/lig_rect", dateRoot + "/lig_qb"]
 vecFolderPath = []
 for taskPath in vecTask:
     with os.scandir(taskPath + "/") as entries:

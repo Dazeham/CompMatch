@@ -23,13 +23,13 @@ CompMatch/
 │   ├── lig_rect/
 │   ├── lig_qb/
 │   └── dl/
-├── ai4rs/
 ├── CalMse/
 ├── CompMatch/
 ├── HalconNCC/
 ├── HalconSHM/
 ├── PoseMatch-TDCM/
 ├── YoloObb/
+├── ai4rs/
 └── README.md
 ```
 
@@ -42,9 +42,6 @@ rot -> The dataset of 0603 box-type components used to evaluate the measurement 
 lig_rect -> The 0603 box-type component dataset used for evaluating measurement uncertainty under varying illumination.  
 lig_qb -> The lead and ball component dataset used for evaluating measurement uncertainty under varying illumination.  
 dl -> The dataset of the 0603 box-type components used for neural network training was obtained under varying illumination.  
-
-- ai4rs :  
-Implement matching of SMCs using the O2-RTDETR.
 
 - CalMse :  
 A tool for calculating standard uncertainty, MAE and other metrics.
@@ -63,6 +60,9 @@ Implement matching of SMCs using the PoseMatch-TDCM.
 
 - YoloObb :  
 Implement matching of SMCs using the YOLO26n-OBB.
+
+- ai4rs :  
+Implement matching of SMCs using the O2-RTDETR.
 
 Note: The installation and usage methods for each subproject can be found in the README.md file within each subproject.
 

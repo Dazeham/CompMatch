@@ -4,24 +4,25 @@
 #include "cm_file.hpp"
 
 
+// Aggregate benchmark result files and export accuracy metrics as CSV.
 int main() {
 	const cv::Size imgSize(512, 512);
 	const std::string dataRoot = "..\\res";
-	std::vector<std::string> vecMethod = cm::glob(dataRoot + "\\*");
-	const std::vector<double> vecRotAng = { -10, -5, 5, 10, 0 };
-	const std::vector<std::string> vecRotFile = { "-10", "-5", "5", "10", "0" };
-	const std::vector<cv::Point2d> vecTraOfs = { cv::Point2d(0, -10), cv::Point2d(0, 10), cv::Point2d(-10, 0), cv::Point2d(10, 0), cv::Point2d(0, 0) };
-	const std::vector<std::string> vecTraFile = { "up", "down", "left", "right", "mid" };
-	const std::string csvRoot = "..\\csv";
+	std::vector<std::string> vecMethod = cm::glob(dataRoot + "\\*");  // Result method folders to summarize.
+	const std::vector<double> vecRotAng = { -10, -5, 5, 10, 0 };  // Tested rotation angles, with 0 as baseline.
+	const std::vector<std::string> vecRotFile = { "-10", "-5", "5", "10", "0" };  // Rotation result file suffixes.
+	const std::vector<cv::Point2d> vecTraOfs = { cv::Point2d(0, -10), cv::Point2d(0, 10), cv::Point2d(-10, 0), cv::Point2d(10, 0), cv::Point2d(0, 0) };  // Tested translation offsets, with (0,0) as baseline.
+	const std::vector<std::string> vecTraFile = { "up", "down", "left", "right", "mid" };  // Translation result file suffixes.
+	const std::string csvRoot = "..\\csv";  // Output directory for generated CSV summaries.
 	if (!std::filesystem::exists(csvRoot)) {
 		std::filesystem::create_directories(csvRoot);
 	}
 
 	/*  Rotation  */
 	// Extracted results
-	std::vector<std::vector<std::vector<double>>> vecRotMes(vecMethod.size());
-	std::vector<std::vector<std::vector<double>>> vecRotTime(vecMethod.size());
-	std::vector<std::vector<std::vector<int>>> vecPassFlag(vecMethod.size());
+	std::vector<std::vector<std::vector<double>>> vecRotMes(vecMethod.size());  // Raw measured angles by method, angle, and image.
+	std::vector<std::vector<std::vector<double>>> vecRotTime(vecMethod.size());  // Raw rotation inference times by method, angle, and image.
+	std::vector<std::vector<std::vector<int>>> vecPassFlag(vecMethod.size());  // Rotation pass flags by method, angle, and image.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<std::vector<double>> tmpAngs(vecRotAng.size());
 		std::vector<std::vector<double>> tmpTimes(vecRotAng.size());
@@ -50,7 +51,7 @@ int main() {
 	
 	// Calculate the angle of relative rotation
 	const int imgNums = vecRotMes[0][0].size();
-	std::vector<std::vector<std::vector<double>>> vecRotDiffMes(vecMethod.size());
+	std::vector<std::vector<std::vector<double>>> vecRotDiffMes(vecMethod.size());  // Angle offsets relative to the zero-rotation baseline.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<std::vector<double>> tmpDiffAngs(vecRotAng.size() - 1);
 		for (int aNo = 0; aNo < vecRotAng.size()-1; ++aNo) {
@@ -64,7 +65,7 @@ int main() {
 	}
 	
 	// Calculate the average
-	std::vector<std::vector<double>> vecRotMean(vecMethod.size());
+	std::vector<std::vector<double>> vecRotMean(vecMethod.size());  // Mean measured rotation offset per method and angle.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<double> tmpDiffAngs(vecRotAng.size() - 1);
 		for (int aNo = 0; aNo < vecRotAng.size() - 1; ++aNo) {
@@ -82,11 +83,11 @@ int main() {
 	}
 	
 	// Calculate metrics
-	std::vector<std::vector<double>> vecRotMAE(vecMethod.size());
-	std::vector<std::vector<double>> vecRotSD(vecMethod.size());
-	std::vector<std::vector<double>> vecRotSU(vecMethod.size());
-	std::vector<std::vector<double>> vecPassRatio(vecMethod.size());
-	std::vector<std::vector<double>> vecRotAvgTime(vecMethod.size());
+	std::vector<std::vector<double>> vecRotMAE(vecMethod.size());  // Rotation mean absolute error per method and angle.
+	std::vector<std::vector<double>> vecRotSD(vecMethod.size());  // Rotation standard deviation per method and angle.
+	std::vector<std::vector<double>> vecRotSU(vecMethod.size());  // Rotation standard uncertainty per method and angle.
+	std::vector<std::vector<double>> vecPassRatio(vecMethod.size());  // Rotation valid-result ratio per method and angle.
+	std::vector<std::vector<double>> vecRotAvgTime(vecMethod.size());  // Average rotation inference time per method and angle.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<double> vecTmpMAE(vecRotAng.size() - 1);
 		std::vector<double> vecTmpSD(vecRotAng.size() - 1);
@@ -119,9 +120,10 @@ int main() {
 		vecRotAvgTime[mNo] = vecTmpTime;
 	}
 
+	// Write one rotation summary file per tested angle.
 	for (int aNo = 0; aNo < vecRotAng.size() - 1; ++aNo) {
-		std::string resPathRot = csvRoot + "\\rot_" + std::to_string(vecRotAng[aNo]) + ".csv";
-		std::ofstream fileRot(resPathRot);
+		std::string resPathRot = csvRoot + "\\rot_" + std::to_string(vecRotAng[aNo]) + ".csv";  // Rotation metric CSV path.
+		std::ofstream fileRot(resPathRot);  // Rotation metric CSV writer.
 		fileRot << "method,rotMean,rotMAE,rotSD,rotSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		    fileRot 
@@ -136,9 +138,9 @@ int main() {
 
 	/*  Translation  */
 	// Extracted results
-	std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMes(vecMethod.size());
-	std::vector<std::vector<std::vector<double>>> vecTraTime(vecMethod.size());
-	std::vector<std::vector<std::vector<int>>> vecTraPassFlag(vecMethod.size());
+	std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMes(vecMethod.size());  // Raw measured offsets by method, direction, and image.
+	std::vector<std::vector<std::vector<double>>> vecTraTime(vecMethod.size());  // Raw translation inference times by method, direction, and image.
+	std::vector<std::vector<std::vector<int>>> vecTraPassFlag(vecMethod.size());  // Translation pass flags by method, direction, and image.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<std::vector<cv::Point2d>> tmpTras(vecTraOfs.size());
 		std::vector<std::vector<double>> tmpTrasTime(vecTraOfs.size());
@@ -166,7 +168,7 @@ int main() {
 	}
 
 	// Calculate the distance of relative translation
-	std::vector<std::vector<std::vector<cv::Point2d>>> vecTraDiffMes(vecMethod.size());
+	std::vector<std::vector<std::vector<cv::Point2d>>> vecTraDiffMes(vecMethod.size());  // Translation offsets relative to the zero-offset baseline.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<std::vector<cv::Point2d>> tmpTras(vecTraOfs.size()-1);
 		for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
@@ -180,7 +182,7 @@ int main() {
 	}
 
 	// Calculate the average
-	std::vector<std::vector<cv::Point2d>> vecTraPtMean(vecMethod.size());
+	std::vector<std::vector<cv::Point2d>> vecTraPtMean(vecMethod.size());  // Mean measured 2D translation offset per method and direction.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<cv::Point2d> tmpTras(vecTraOfs.size() - 1);
 		for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
@@ -198,12 +200,12 @@ int main() {
 	}
 	
 	// Calculate metrics
-	std::vector<std::vector<double>> vecTraMean(vecMethod.size());
-	std::vector<std::vector<double>> vecTraMAE(vecMethod.size());
-	std::vector<std::vector<double>> vecTraSD(vecMethod.size());
-	std::vector<std::vector<double>> vecTraSU(vecMethod.size());
-	std::vector<std::vector<double>> vecTraPassRatio(vecMethod.size());
-	std::vector<std::vector<double>> vecTraAvgTime(vecMethod.size());
+	std::vector<std::vector<double>> vecTraMean(vecMethod.size());  // Axis-aligned mean translation per method and direction.
+	std::vector<std::vector<double>> vecTraMAE(vecMethod.size());  // Translation mean absolute error per method and direction.
+	std::vector<std::vector<double>> vecTraSD(vecMethod.size());  // Translation standard deviation per method and direction.
+	std::vector<std::vector<double>> vecTraSU(vecMethod.size());  // Translation standard uncertainty per method and direction.
+	std::vector<std::vector<double>> vecTraPassRatio(vecMethod.size());  // Translation valid-result ratio per method and direction.
+	std::vector<std::vector<double>> vecTraAvgTime(vecMethod.size());  // Average translation inference time per method and direction.
 	for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 		std::vector<double> tmpMeans(vecTraOfs.size() - 1);
 		std::vector<double> tmpMAEs(vecTraOfs.size() - 1);
@@ -239,9 +241,10 @@ int main() {
 		vecTraAvgTime[mNo] = tmpTimes;
 	}
 
+	// Write one translation summary file per tested direction.
 	for (int tNo = 0; tNo < vecTraOfs.size() - 1; ++tNo) {
-		std::string resPathTra = csvRoot + "\\tra_" + vecTraFile[tNo] + ".csv";
-		std::ofstream fileTra(resPathTra);
+		std::string resPathTra = csvRoot + "\\tra_" + vecTraFile[tNo] + ".csv";  // Translation metric CSV path.
+		std::ofstream fileTra(resPathTra);  // Translation metric CSV writer.
 		fileTra << "method,traMean,traMAE,traSD,traSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo)
 			fileTra << vecMethod[mNo] << "," 
@@ -253,13 +256,14 @@ int main() {
 	
 
 	/*  Light  */
+	// Summarize light-condition robustness tasks.
 	const std::vector<std::string> vecTask = { "lig_rect", "lig_qb" };
 	for (std::string taskName : vecTask) {
 		// Extracted results
-		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMesL(vecMethod.size());
-		std::vector<std::vector<std::vector<double>>> vecRotMesL(vecMethod.size());
-		std::vector<std::vector<std::vector<double>>> vecTimeMesL(vecMethod.size());
-		std::vector<std::vector<std::vector<int>>> vecPassFlagL(vecMethod.size());
+		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraMesL(vecMethod.size());  // Light-task measured offsets by method, file, and image.
+		std::vector<std::vector<std::vector<double>>> vecRotMesL(vecMethod.size());  // Light-task measured angles by method, file, and image.
+		std::vector<std::vector<std::vector<double>>> vecTimeMesL(vecMethod.size());  // Light-task inference times by method, file, and image.
+		std::vector<std::vector<std::vector<int>>> vecPassFlagL(vecMethod.size());  // Light-task pass flags by method, file, and image.
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			std::vector<std::string> tmpResFile = cm::glob(dataRoot + "\\" + vecMethod[mNo] + "\\" + taskName + "\\*.txt");
 			std::vector<std::vector<cv::Point2d>> tmpTraMes(tmpResFile.size());
@@ -292,10 +296,10 @@ int main() {
 		}
 
 		// Calculate the average
-		std::vector<std::vector<cv::Point2d>> vecTraMeanL(vecMethod.size());
-		std::vector<std::vector<double>> vecRotMeanL(vecMethod.size());
-		std::vector<std::vector<double>> vecTimeMeanL(vecMethod.size());
-		std::vector<std::vector<int>> vecPassNumL(vecMethod.size());
+		std::vector<std::vector<cv::Point2d>> vecTraMeanL(vecMethod.size());  // Light-task mean offset per method and file.
+		std::vector<std::vector<double>> vecRotMeanL(vecMethod.size());  // Light-task mean angle per method and file.
+		std::vector<std::vector<double>> vecTimeMeanL(vecMethod.size());  // Light-task mean time per method and file.
+		std::vector<std::vector<int>> vecPassNumL(vecMethod.size());  // Light-task valid-result count per method and file.
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			std::vector<cv::Point2d> tmpTraMean(vecTraMesL[mNo].size());
 			std::vector<double> tmpRotMean(vecRotMesL[mNo].size());
@@ -326,8 +330,8 @@ int main() {
 		}
 
 		// Calculate the error
-		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraDiffL(vecMethod.size());
-		std::vector<std::vector<std::vector<double>>> vecRotDiffL(vecMethod.size());
+		std::vector<std::vector<std::vector<cv::Point2d>>> vecTraDiffL(vecMethod.size());  // Light-task translation residuals after mean removal.
+		std::vector<std::vector<std::vector<double>>> vecRotDiffL(vecMethod.size());  // Light-task rotation residuals after mean removal.
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			std::vector<std::vector<cv::Point2d>> tmpTraDiffL(vecTraMesL[mNo].size());
 			std::vector<std::vector<double>> tmpRotDiffL(vecRotMesL[mNo].size());
@@ -346,16 +350,16 @@ int main() {
 		}
 
 		// Calculate metrics
-		std::vector<double> vecTraMAEL(vecMethod.size());
-		std::vector<double> vecTraSDL(vecMethod.size());
-		std::vector<double> vecTraSUL(vecMethod.size());
+		std::vector<double> vecTraMAEL(vecMethod.size());  // Light-task aggregate translation MAE per method.
+		std::vector<double> vecTraSDL(vecMethod.size());  // Light-task aggregate translation SD per method.
+		std::vector<double> vecTraSUL(vecMethod.size());  // Light-task aggregate translation SU per method.
 
-		std::vector<double> vecRotMAEL(vecMethod.size());
-		std::vector<double> vecRotSDL(vecMethod.size());
-		std::vector<double> vecRotSUL(vecMethod.size());
+		std::vector<double> vecRotMAEL(vecMethod.size());  // Light-task aggregate rotation MAE per method.
+		std::vector<double> vecRotSDL(vecMethod.size());  // Light-task aggregate rotation SD per method.
+		std::vector<double> vecRotSUL(vecMethod.size());  // Light-task aggregate rotation SU per method.
 
-		std::vector<double> vecAvgTimeL(vecMethod.size());
-		std::vector<double> vecPassRatioL(vecMethod.size());
+		std::vector<double> vecAvgTimeL(vecMethod.size());  // Light-task aggregate average time per method.
+		std::vector<double> vecPassRatioL(vecMethod.size());  // Light-task aggregate valid-result ratio per method.
 
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo) {
 			double traSumAbs = 0;
@@ -394,8 +398,9 @@ int main() {
 			vecAvgTimeL[mNo] = tmpTime / tmpNum;
 			vecPassRatioL[mNo] = tmpNum / totalNum;
 		}
-		std::string resPathLig = csvRoot + "\\" + taskName + ".csv";
-		std::ofstream fileLig(resPathLig);
+		// Write the aggregate light-condition metrics.
+		std::string resPathLig = csvRoot + "\\" + taskName + ".csv";  // Light-task metric CSV path.
+		std::ofstream fileLig(resPathLig);  // Light-task metric CSV writer.
 		fileLig << "method,traMAE,traSD,traSU,rotMAE,rotSD,rotSU,passRatio,time\n";
 		for (int mNo = 0; mNo < vecMethod.size(); ++mNo)
 			fileLig << vecMethod[mNo] << ","

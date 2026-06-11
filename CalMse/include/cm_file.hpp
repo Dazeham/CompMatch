@@ -7,6 +7,7 @@
 
 
 namespace {
+    // Convert a small glob pattern into an equivalent regular expression.
     std::string globToRegex(const std::string& inGlob) {
         std::string regex;
         for (char c : inGlob) {
@@ -25,6 +26,7 @@ namespace {
 }
 
 namespace cm {
+    // Return paths in the base directory that match a simple glob pattern.
     std::vector<std::string> glob(const std::string& inPat) {
         std::vector<std::string> result;
 
@@ -46,6 +48,7 @@ namespace cm {
         return result;
     }
 
+    // Split a string by a fixed delimiter.
     std::vector<std::string> split(const std::string& inStr, const std::string& inDel) {
         std::vector<std::string> result;
         size_t posStart = 0, posEnd;
